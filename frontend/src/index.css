@@ -10,80 +10,115 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 20%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
-    --primary: 222.2642 100% 68.8235%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 220 15% 39.2157%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 225 10% 52.9412%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 229.4891 70.9845% 37.8431%;
-    --destructive: 4.9655 92.3567% 69.2157%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 96%;
-    --ring: 222.2642 100% 68.8235%;
-    --chart-1: 222.2642 100% 68.8235%;
-    --chart-2: 226.0773 91.8782% 61.3725%;
-    --chart-3: 229.375 84.2105% 55.2941%;
-    --chart-4: 230.8696 77.9661% 46.2745%;
-    --chart-5: 229.4891 70.9845% 37.8431%;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 222.2642 100% 68.8235%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 229.4891 70.9845% 37.8431%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 222.2642 100% 68.8235%;
-    --radius: 0.375rem;
     --font-sans: "Poppins", ui-sans-serif, sans-serif, system-ui;
     --font-serif: "Arvo", serif;
     --font-mono: "Geist Mono", ui-monospace, monospace;
+    --background: 0 0% 96.0784%;
+    --foreground: 0 0% 18.8235%;
+    --card: 0 0% 94.902%;
+    --card-foreground: 0 0% 23.1373%;
+    --popover: 0 0% 92.9412%;
+    --popover-foreground: 0 0% 23.1373%;
+    --primary: 221.8269 83.2% 50.9804%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 275.0685 100% 42.9412%;
+    --secondary-foreground: 0 0% 89.8039%;
+    --muted: 0 0% 90.1961%;
+    --muted-foreground: 0 0% 18.0392%;
+    --accent: 224.9102 88.3598% 62.9412%;
+    --accent-foreground: 0 0% 89.8039%;
+    --destructive: 0 87.4477% 53.1373%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90.1961%;
+    --input: 0 0% 74.1176%;
+    --ring: 246.6207 77.5401% 63.3333%;
+    --chart-1: 246.6207 77.5401% 63.3333%;
+    --chart-2: 282.1622 46.0581% 47.2549%;
+    --chart-3: 274.6154 100% 25.4902%;
+    --chart-4: 218.6014 82.659% 66.0784%;
+    --chart-5: 207.4138 46.4% 49.0196%;
+    --sidebar: 0 0% 96.0784%;
+    --sidebar-foreground: 0 0% 18.8235%;
+    --sidebar-primary: 246.6207 77.5401% 63.3333%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 225 93.617% 63.1373%;
+    --sidebar-accent-foreground: 0 0% 18.8235%;
+    --sidebar-border: 0 0% 90.1961%;
+    --sidebar-ring: 246.6207 77.5401% 63.3333%;
+    --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: Arvo, ui-serif, serif;
+    --font-mono: Geist Mono, ui-monospace, monospace;
+    --radius: 0.525rem;
+    --shadow-2xs: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.05);
+    --shadow-xs: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.05);
+    --shadow-sm: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 1px 2px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 1px 2px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-md: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 2px 4px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-lg: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 4px 6px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-xl: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 8px 10px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-2xl: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.25);
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
   }
+
   .dark {
+    --font-sans: "Poppins", ui-sans-serif, sans-serif, system-ui;
+    --font-serif: "Arvo", serif;
+    --font-mono: "Geist Mono", ui-monospace, monospace;
     --background: 0 0% 9.0196%;
     --foreground: 0 0% 89.8039%;
-    --card: 0 0% 14.902%;
+    --card: 0 0% 14.1176%;
     --card-foreground: 0 0% 89.8039%;
-    --popover: 0 0% 14.902%;
+    --popover: 0 0% 14.1176%;
     --popover-foreground: 0 0% 89.8039%;
-    --primary: 222.2642 100% 68.8235%;
+    --primary: 221.8269 83.2% 50.9804%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 14.902%;
+    --secondary: 275.0685 100% 42.9412%;
     --secondary-foreground: 0 0% 89.8039%;
-    --muted: 0 0% 14.902%;
-    --muted-foreground: 0 0% 63.9216%;
-    --accent: 229.4891 70.9845% 37.8431%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 4.9655 92.3567% 69.2157%;
+    --muted: 0 0% 21.9608%;
+    --muted-foreground: 0 0% 76.0784%;
+    --accent: 224.9102 88.3598% 62.9412%;
+    --accent-foreground: 0 0% 89.8039%;
+    --destructive: 0 87.4477% 53.1373%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 25.098%;
-    --input: 0 0% 25.098%;
-    --ring: 222.2642 100% 68.8235%;
-    --chart-1: 218.0357 100% 78.0392%;
-    --chart-2: 222.2642 100% 68.8235%;
-    --chart-3: 226.0773 91.8782% 61.3725%;
-    --chart-4: 229.375 84.2105% 55.2941%;
-    --chart-5: 230.8696 77.9661% 46.2745%;
-    --sidebar-background: 0 0% 9.0196%;
+    --border: 0 0% 14.1176%;
+    --input: 0 0% 27.0588%;
+    --ring: 246.6207 77.5401% 63.3333%;
+    --chart-1: 246.6207 77.5401% 63.3333%;
+    --chart-2: 282.1622 46.0581% 47.2549%;
+    --chart-3: 274.6154 100% 25.4902%;
+    --chart-4: 218.6014 82.659% 66.0784%;
+    --chart-5: 207.4138 46.4% 49.0196%;
+    --sidebar: 0 0% 9.0196%;
     --sidebar-foreground: 0 0% 89.8039%;
-    --sidebar-primary: 222.2642 100% 68.8235%;
+    --sidebar-primary: 246.6207 77.5401% 63.3333%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 229.4891 70.9845% 37.8431%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 25.098%;
-    --sidebar-ring: 222.2642 100% 68.8235%;
-    --radius: 0.375rem;
-    --font-sans: "Poppins", ui-sans-serif, sans-serif, system-ui;
-    --font-serif: "Arvo", serif;
-    --font-mono: "Geist Mono", ui-monospace, monospace;
+    --sidebar-accent: 224.8315 77.3913% 54.902%;
+    --sidebar-accent-foreground: 0 0% 89.8039%;
+    --sidebar-border: 0 0% 14.1176%;
+    --sidebar-ring: 246.6207 77.5401% 63.3333%;
+    --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: Arvo, ui-serif, serif;
+    --font-mono: Geist Mono, ui-monospace, monospace;
+    --radius: 0.525rem;
+    --shadow-2xs: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.05);
+    --shadow-xs: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.05);
+    --shadow-sm: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 1px 2px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 1px 2px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-md: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 2px 4px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-lg: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 4px 6px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-xl: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.1),
+      0px 8px 10px -3px hsl(0 0% 10.1961% / 0.1);
+    --shadow-2xl: 0px 5px 10px -2px hsl(0 0% 10.1961% / 0.25);
   }
 }
 

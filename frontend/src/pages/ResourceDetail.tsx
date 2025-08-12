@@ -2,8 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   ArrowLeft,
-  Book,
-  Download,
   Share2,
   Calendar,
   User,

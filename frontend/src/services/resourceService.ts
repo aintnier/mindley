@@ -18,19 +18,19 @@ export const resourceService = {
   },
 
   // Create new resource (placeholder for future implementation)
-  async createResource(data: any): Promise<Resource> {
+  async createResource(_data: any): Promise<Resource> {
     // This will be implemented when backend is ready
     throw new Error("Backend not yet implemented");
   },
 
   // Update resource (placeholder for future implementation)
-  async updateResource(id: string, data: any): Promise<Resource> {
+  async updateResource(_id: string, _data: any): Promise<Resource> {
     // This will be implemented when backend is ready
     throw new Error("Backend not yet implemented");
   },
 
   // Delete resource (placeholder for future implementation)
-  async deleteResource(id: string): Promise<void> {
+  async deleteResource(_id: string): Promise<void> {
     // This will be implemented when backend is ready
     throw new Error("Backend not yet implemented");
   },

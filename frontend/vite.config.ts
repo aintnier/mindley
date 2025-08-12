@@ -13,4 +13,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: true, // Espone il server su tutte le interfacce di rete
+    port: 5173,
+    watch: {
+      usePolling: true, // Necessario per WSL e alcuni file system
+      interval: 100, // Frequenza di polling in ms
+    },
+    hmr: {
+      overlay: true, // Mostra errori in overlay
+    },
+  },
 });
