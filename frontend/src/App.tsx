@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="mindly-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="mindley-ui-theme">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
