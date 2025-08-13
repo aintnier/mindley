@@ -226,7 +226,9 @@ export default function SignUpPage() {
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="Password"
-                          className="h-10 border-border bg-background focus:bg-background transition-colors pr-10 [&::-ms-reveal]:hidden [&::-webkit-textfield-decoration-container]:hidden"
+                          autoComplete="new-password"
+                          inputMode="text"
+                          className="h-10 border-border bg-background focus:bg-background transition-colors pr-10"
                           disabled={isLoading}
                           {...field}
                         />
@@ -264,8 +266,10 @@ export default function SignUpPage() {
                       <div className="relative">
                         <Input
                           type={showConfirmPassword ? "text" : "password"}
-                          placeholder="Password"
-                          className="h-10 border-border bg-background focus:bg-background transition-colors pr-10 !mb-2 [&::-ms-reveal]:hidden [&::-webkit-textfield-decoration-container]:hidden"
+                          placeholder="Confirm password"
+                          autoComplete="new-password"
+                          inputMode="text"
+                          className="h-10 border-border bg-background focus:bg-background transition-colors pr-10 !mb-2"
                           disabled={isLoading}
                           {...field}
                         />

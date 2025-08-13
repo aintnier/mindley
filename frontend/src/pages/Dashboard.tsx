@@ -51,7 +51,6 @@ export default function Dashboard() {
       resourceService
         .getAllResources()
         .then((data) => {
-          console.log("[Dashboard] Loaded resources:", data.length);
           setResources(data);
         })
         .catch(console.error);
@@ -284,7 +283,7 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-wrap gap-4">
                 {filteredResources.map((resource) => (
                   <ResourceCard
                     key={resource.id}

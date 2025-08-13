@@ -1,3 +1,20 @@
+// Funzione per assegnare colore coerente ai tag (come nelle card)
+const getTagColor = (tag: string) => {
+  const hash = tag.split("").reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const colors = [
+    "bg-blue-100 text-blue-800",
+    "bg-green-100 text-green-800",
+    "bg-yellow-100 text-yellow-800",
+    "bg-red-100 text-red-800",
+    "bg-purple-100 text-purple-800",
+    "bg-pink-100 text-pink-800",
+    "bg-indigo-100 text-indigo-800",
+  ];
+  return colors[Math.abs(hash) % colors.length];
+};
 import { useState } from "react";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,14 +70,14 @@ export function MultipleTagSelector({
   };
 
   // Filter tags based on search value
-  const filteredTags = availableTags.filter(tag =>
+  const filteredTags = availableTags.filter((tag) =>
     tag.toLowerCase().includes(searchValue.toLowerCase())
   );
 
   return (
     <div className="relative">
-      <Popover 
-        open={open} 
+      <Popover
+        open={open}
         onOpenChange={(newOpen: boolean) => {
           setOpen(newOpen);
           if (!newOpen) {
@@ -70,7 +87,7 @@ export function MultipleTagSelector({
       >
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            variant="select"
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between h-10 px-3 py-2"
@@ -83,8 +100,10 @@ export function MultipleTagSelector({
               ) : selectedTags.length > 3 ? (
                 <>
                   <Badge
-                    variant="secondary"
-                    className="text-xs hover:bg-secondary cursor-pointer shrink-0"
+                    variant="tag"
+                    className={`text-xs px-2 py-0.5 cursor-pointer shrink-0 ${getTagColor(
+                      selectedTags[0]
+                    )}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTagRemove(selectedTags[0]);
@@ -94,8 +113,10 @@ export function MultipleTagSelector({
                     <X className="ml-1 h-3 w-3" />
                   </Badge>
                   <Badge
-                    variant="secondary"
-                    className="text-xs hover:bg-secondary cursor-pointer shrink-0"
+                    variant="tag"
+                    className={`text-xs cursor-pointer shrink-0 ${getTagColor(
+                      selectedTags[1]
+                    )}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTagRemove(selectedTags[1]);
@@ -112,8 +133,10 @@ export function MultipleTagSelector({
                 selectedTags.map((tag) => (
                   <Badge
                     key={tag}
-                    variant="secondary"
-                    className="text-xs hover:bg-secondary cursor-pointer shrink-0"
+                    variant="tag"
+                    className={`text-xs cursor-pointer shrink-0 ${getTagColor(
+                      tag
+                    )}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTagRemove(tag);
@@ -130,8 +153,8 @@ export function MultipleTagSelector({
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
           <Command>
-            <CommandInput 
-              placeholder="Search tags..." 
+            <CommandInput
+              placeholder="Search tags..."
               value={searchValue}
               onValueChange={setSearchValue}
             />
@@ -152,7 +175,7 @@ export function MultipleTagSelector({
                       )}
                     />
                     {tag}
-                    <Badge variant="outline" className="ml-auto text-xs">
+                    <Badge variant="tagCount" className="ml-auto text-xs">
                       {tagCounts[tag] || 0}
                     </Badge>
                   </CommandItem>

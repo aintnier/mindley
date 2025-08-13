@@ -149,7 +149,9 @@ export default function SignInPage() {
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="Password"
-                          className="h-10 border-border bg-background focus:bg-background transition-colors pr-10 !mb-2 [&::-ms-reveal]:hidden [&::-webkit-textfield-decoration-container]:hidden"
+                          autoComplete="current-password"
+                          inputMode="text"
+                          className="h-10 border-border bg-background focus:bg-background transition-colors pr-10 !mb-2 "
                           disabled={isLoading}
                           {...field}
                         />

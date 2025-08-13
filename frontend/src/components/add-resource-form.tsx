@@ -29,7 +29,7 @@ export function AddResourceForm({
 }: AddResourceFormProps) {
   const [url, setUrl] = useState("");
   const [language, setLanguage] = useState<"original" | "italian" | "english">(
-    "english"
+    "original"
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,17 +73,19 @@ export function AddResourceForm({
           onSubmit={handleSubmit}
           className="flex flex-col md:flex-row gap-3"
         >
-          <div className="flex-1 relative">
-            <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="url"
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://youtube.com/watch?v=... or https://example.com/article"
-              className="pl-10"
-              disabled={isLoading}
-            />
+          <div className="flex-1">
+            <div className="relative">
+              <LinkIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="url"
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=...   or   https://example.com/article"
+                className="pl-10 bg-background focus:bg-background placeholder:text-card-foreground/70"
+                disabled={isLoading}
+              />
+            </div>
             {url && !isValidUrl(url) && (
               <p className="text-xs text-destructive mt-1">
                 Please enter a valid URL
@@ -91,18 +93,18 @@ export function AddResourceForm({
             )}
           </div>
 
-          <div className="flex gap-2 md:w-auto w-full">
+          <div className="flex gap-2 md:w-auto w-full ">
             <Select
               value={language}
               onValueChange={(value) => setLanguage(value as any)}
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-32 bg-background focus:bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="italian">Italian</SelectItem>
                 <SelectItem value="original">Original</SelectItem>
+                <SelectItem value="italian">Italian</SelectItem>
+                <SelectItem value="english">English</SelectItem>
               </SelectContent>
             </Select>
 

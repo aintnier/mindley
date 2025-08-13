@@ -58,9 +58,36 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
     return summary.substring(0, maxLength) + "...";
   };
 
+  const publishedDateMissing =
+    !resource.published_date ||
+    isNaN(new Date(resource.published_date).getTime());
+  const publishedDateText = publishedDateMissing
+    ? "No date"
+    : formatDate(resource.published_date!);
+  const authorMissing = !resource.author || resource.author.trim() === "";
+  const authorText = authorMissing ? "No author" : resource.author;
+  const imageAlt = resource.title
+    ? `${resource.title} thumbnail`
+    : "Image unavailable";
+
   return (
-    <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="space-y-2">
+    <Card className="h-full flex flex-col hover:shadow-md transition-shadow duration-200 text-sm w-[22rem]">
+      <div className="w-full h-[12.32rem] rounded-t-lg bg-muted flex items-center justify-center text-center overflow-hidden">
+        {resource.thumbnail_link ? (
+          <img
+            src={resource.thumbnail_link}
+            alt={imageAlt}
+            className="w-full h-full rounded-t-lg"
+            loading="lazy"
+          />
+        ) : (
+          <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug flex items-center justify-center w-full h-full">
+            {imageAlt}
+          </span>
+        )}
+      </div>
+
+      <CardHeader className="space-y-2 p-4 pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-2">
             {getContentTypeIcon()}
@@ -78,34 +105,37 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
           </Button>
         </div>
         <div>
-          <CardTitle className="text-lg leading-tight line-clamp-2">
+          <CardTitle className="text-base leading-snug line-clamp-2 min-h-[2.6rem]">
             {resource.title}
           </CardTitle>
           <CardDescription className="flex items-center space-x-2 mt-2">
             <User className="h-3 w-3" />
-            <span>{resource.author}</span>
+            <span
+              className={authorMissing ? "text-muted-foreground/70" : undefined}
+            >
+              {authorText}
+            </span>
             <span>•</span>
             <Calendar className="h-3 w-3" />
-            <span>{formatDate(resource.published_date ?? "")}</span>
+            <span
+              className={
+                publishedDateMissing ? "text-muted-foreground/70" : undefined
+              }
+            >
+              {publishedDateText}
+            </span>
           </CardDescription>
         </div>
       </CardHeader>
 
-      {resource.thumbnail_link && (
-        <img
-          src={resource.thumbnail_link}
-          alt="Resource thumbnail"
-          className="w-full h-40 object-cover rounded-b-none rounded-t-lg"
-          style={{ objectFit: "cover" }}
-        />
-      )}
+      <CardContent className="flex-1 p-4 pt-0 flex flex-col">
+        <div className="text-xs text-muted-foreground leading-relaxed h-[4.9rem] overflow-hidden">
+          <p className="line-clamp-4">
+            {truncateSummary(resource.summary, 250)}
+          </p>
+        </div>
 
-      <CardContent className="flex-1">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          {truncateSummary(resource.summary)}
-        </p>
-
-        <div className="flex flex-wrap gap-1 mt-4">
+        <div className="flex flex-wrap gap-1 mt-3">
           {resource.tags.slice(0, 3).map((tag, index) => (
             <Badge
               key={index}
@@ -128,10 +158,10 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="pt-4">
+      <CardFooter className="pt-2 p-4">
         <Button
           onClick={() => onViewDetails(resource.id)}
-          className="w-full"
+          className="w-full h-8 text-xs"
           variant="outline"
         >
           View Details
