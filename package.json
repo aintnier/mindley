@@ -1,0 +1,27 @@
+{
+  "name": "mindley",
+  "version": "1.0.0",
+  "description": "Mindley App - Full-stack application with React frontend and Supabase backend",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "lint": "cd frontend && npm run lint",
+    "install:frontend": "cd frontend && npm install",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:functions": "supabase functions serve"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "supabase",
+    "vite"
+  ],
+  "workspaces": [
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
