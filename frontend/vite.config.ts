@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0', // Espone il server su tutte le interfacce di rete
+    host: "0.0.0.0", // Espone il server su tutte le interfacce di rete
     port: 5173,
     watch: {
       usePolling: true, // Necessario per WSL e alcuni file system

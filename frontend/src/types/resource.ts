@@ -1,4 +1,3 @@
-
 export interface Resource {
   id: string;
   title: string;
@@ -12,7 +11,6 @@ export interface Resource {
   processed_date: string;
   user_id: string;
 }
-
 
 export interface CreateResourceRequest {
   link: string;

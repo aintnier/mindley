@@ -1,15 +1,15 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Share2,
   Calendar,
-  User,
-  ExternalLink,
   Cog,
-  Youtube,
+  ExternalLink,
   FileText,
+  Share2,
   Trash2,
+  User,
+  Youtube,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,11 +60,9 @@ const ResourceDetail = () => {
   }, [id]);
 
   const getContentTypeIcon = (contentType: string) => {
-    return contentType === "youtube" ? (
-      <Youtube className="h-4 w-4 text-red-500" />
-    ) : (
-      <FileText className="h-4 w-4 text-blue-500" />
-    );
+    return contentType === "youtube"
+      ? <Youtube className="h-4 w-4 text-red-500" />
+      : <FileText className="h-4 w-4 text-blue-500" />;
   };
 
   const getTagColor = (tag: string) => {
@@ -117,7 +115,7 @@ const ResourceDetail = () => {
     if (
       resource &&
       window.confirm(
-        `Are you sure you want to delete "${resource.title}"? This action cannot be undone.`
+        `Are you sure you want to delete "${resource.title}"? This action cannot be undone.`,
       )
     ) {
       try {
@@ -289,9 +287,11 @@ const ResourceDetail = () => {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className={`text-xs ${getTagColor(
-                                tag
-                              )} cursor-default pointer-events-none`}
+                              className={`text-xs ${
+                                getTagColor(
+                                  tag,
+                                )
+                              } cursor-default pointer-events-none`}
                             >
                               {tag}
                             </Badge>

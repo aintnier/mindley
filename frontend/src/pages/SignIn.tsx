@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
 
 import { auth } from "@/lib/supabase";
-import { signInSchema, type SignInFormData } from "@/lib/validations";
+import { type SignInFormData, signInSchema } from "@/lib/validations";
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -43,7 +43,7 @@ export default function SignInPage() {
     try {
       const { data: authData, error } = await auth.signIn(
         data.email,
-        data.password
+        data.password,
       );
 
       if (error) {
@@ -163,11 +163,9 @@ export default function SignInPage() {
                             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                             onClick={() => setShowPassword(!showPassword)}
                           >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showPassword
+                              ? <EyeOff className="h-4 w-4" />
+                              : <Eye className="h-4 w-4" />}
                           </Button>
                         )}
                       </div>

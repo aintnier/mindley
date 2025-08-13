@@ -1,4 +1,4 @@
-import { Calendar, ExternalLink, User, Youtube, FileText } from "lucide-react";
+import { Calendar, ExternalLink, FileText, User, Youtube } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,11 +18,9 @@ interface ResourceCardProps {
 
 export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
   const getContentTypeIcon = () => {
-    return resource.content_type === "youtube" ? (
-      <Youtube className="h-5 w-5 text-red-500" />
-    ) : (
-      <FileText className="h-5 w-5 text-blue-500" />
-    );
+    return resource.content_type === "youtube"
+      ? <Youtube className="h-5 w-5 text-red-500" />
+      : <FileText className="h-5 w-5 text-blue-500" />;
   };
 
   const getTagColor = (tag: string) => {
@@ -58,8 +56,7 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
     return summary.substring(0, maxLength) + "...";
   };
 
-  const publishedDateMissing =
-    !resource.published_date ||
+  const publishedDateMissing = !resource.published_date ||
     isNaN(new Date(resource.published_date).getTime());
   const publishedDateText = publishedDateMissing
     ? "No date"
@@ -73,18 +70,20 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow duration-200 text-sm w-[22rem]">
       <div className="w-full h-[12.32rem] rounded-t-lg bg-muted flex items-center justify-center text-center overflow-hidden">
-        {resource.thumbnail_link ? (
-          <img
-            src={resource.thumbnail_link}
-            alt={imageAlt}
-            className="w-full h-full rounded-t-lg"
-            loading="lazy"
-          />
-        ) : (
-          <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug flex items-center justify-center w-full h-full">
-            {imageAlt}
-          </span>
-        )}
+        {resource.thumbnail_link
+          ? (
+            <img
+              src={resource.thumbnail_link}
+              alt={imageAlt}
+              className="w-full h-full rounded-t-lg"
+              loading="lazy"
+            />
+          )
+          : (
+            <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug flex items-center justify-center w-full h-full">
+              {imageAlt}
+            </span>
+          )}
       </div>
 
       <CardHeader className="space-y-2 p-4 pb-2">
@@ -118,9 +117,9 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
             <span>•</span>
             <Calendar className="h-3 w-3" />
             <span
-              className={
-                publishedDateMissing ? "text-muted-foreground/70" : undefined
-              }
+              className={publishedDateMissing
+                ? "text-muted-foreground/70"
+                : undefined}
             >
               {publishedDateText}
             </span>
@@ -140,9 +139,11 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
             <Badge
               key={index}
               variant="secondary"
-              className={`text-xs ${getTagColor(
-                tag
-              )} cursor-default pointer-events-none`}
+              className={`text-xs ${
+                getTagColor(
+                  tag,
+                )
+              } cursor-default pointer-events-none`}
             >
               {tag}
             </Badge>

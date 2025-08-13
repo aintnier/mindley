@@ -42,6 +42,7 @@ export default function Dashboard() {
     sortOrder: "desc",
     selectedTags: [],
   });
+  const [user, setUser] = useState<any>(null);
 
   // Load resources and setup realtime subscription
   useEffect(() => {
@@ -62,12 +63,13 @@ export default function Dashboard() {
     const setupRealtime = async () => {
       try {
         const {
-          data: { user },
+          data: { user: supaUser },
         } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!supaUser) return;
+        setUser(supaUser);
 
         subscription = supabase
-          .channel(`resources-${user.id}-${Date.now()}`)
+          .channel(`resources-${supaUser.id}-${Date.now()}`)
           .on(
             "postgres_changes",
             {
@@ -78,7 +80,7 @@ export default function Dashboard() {
             (payload) => {
               console.log("[Realtime] INSERT event received:", payload);
               // Check if the resource belongs to the current user
-              if (payload.new && payload.new.user_id === user.id) {
+              if (payload.new && payload.new.user_id === supaUser.id) {
                 loadResources();
                 toast({
                   title: "Resource ready!",
@@ -187,6 +189,7 @@ export default function Dashboard() {
   }, [resources, filters]);
 
   const handleAddResource = async (data: CreateResourceRequest) => {
+    if (!user) return;
     setIsAddingResource(true);
     toast({
       title: "Processing resource...",
@@ -196,7 +199,10 @@ export default function Dashboard() {
       variant: "default",
     });
     try {
-      await resourceService.createResource(data);
+      await resourceService.createResource({
+        ...data,
+        user_id: user.id,
+      });
     } finally {
       setIsAddingResource(false);
     }

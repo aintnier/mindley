@@ -1,4 +1,4 @@
-import { Search, Filter, Tag } from "lucide-react";
+import { Filter, Search, Tag } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,8 +87,7 @@ export function ResourceFilters({
             <Select
               value={filters.contentType}
               onValueChange={(value: any) =>
-                onFiltersChange({ ...filters, contentType: value })
-              }
+                onFiltersChange({ ...filters, contentType: value })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -106,8 +105,7 @@ export function ResourceFilters({
             <Select
               value={filters.sortBy}
               onValueChange={(value: any) =>
-                onFiltersChange({ ...filters, sortBy: value })
-              }
+                onFiltersChange({ ...filters, sortBy: value })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -125,8 +123,7 @@ export function ResourceFilters({
             <Select
               value={filters.sortOrder}
               onValueChange={(value: any) =>
-                onFiltersChange({ ...filters, sortOrder: value })
-              }
+                onFiltersChange({ ...filters, sortOrder: value })}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -149,9 +146,9 @@ export function ResourceFilters({
             {availableTags.map((tag) => (
               <Badge
                 key={tag}
-                variant={
-                  filters.selectedTags.includes(tag) ? "default" : "outline"
-                }
+                variant={filters.selectedTags.includes(tag)
+                  ? "default"
+                  : "outline"}
                 className="cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => toggleTag(tag)}
               >

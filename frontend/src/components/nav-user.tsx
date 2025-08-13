@@ -60,8 +60,8 @@ export function NavUser() {
     return "U";
   };
 
-  const displayName =
-    user.user_metadata?.full_name || user.email?.split("@")[0] || "Utente";
+  const displayName = user.user_metadata?.full_name ||
+    user.email?.split("@")[0] || "Utente";
   const initials = getInitials(user.user_metadata?.full_name, user.email);
 
   return (
@@ -114,10 +114,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             {/* <DropdownMenuSeparator /> */}
             <DropdownMenuGroup>
-              {/* <DropdownMenuItem>
+              {
+                /* <DropdownMenuItem>
                 <Sparkles />
                 Upgrade to Pro
-              </DropdownMenuItem> */}
+              </DropdownMenuItem> */
+              }
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -125,10 +127,12 @@ export function NavUser() {
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              {/* <DropdownMenuItem>
+              {
+                /* <DropdownMenuItem>
                 <CreditCard />
                 Billing
-              </DropdownMenuItem> */}
+              </DropdownMenuItem> */
+              }
               <DropdownMenuItem>
                 <Bell />
                 Notifications

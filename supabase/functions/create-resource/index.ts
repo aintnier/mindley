@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
   }
 
   // Input
-  let body: { link: string };
+  let body: { link: string; language?: string };
   try {
     body = await req.json();
   } catch {
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
   // Inoltra a n8n (webhook pubblico EC2)
   const n8nWebhookUrl =
     "http://51.21.76.114:5678/webhook/72fdabf2-3d1c-4534-9b18-b1e04f70db87";
-  const n8nPayload = { link: body.link, user_id };
+  const n8nPayload = { link: body.link, user_id, language: body.language };
   let n8nRes;
   try {
     n8nRes = await fetch(n8nWebhookUrl, {

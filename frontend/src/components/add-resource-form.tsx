@@ -1,4 +1,4 @@
-import { Plus, Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,7 @@ export function AddResourceForm({
 }: AddResourceFormProps) {
   const [url, setUrl] = useState("");
   const [language, setLanguage] = useState<"original" | "italian" | "english">(
-    "original"
+    "original",
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -113,17 +113,19 @@ export function AddResourceForm({
               disabled={!canSubmit}
               className="whitespace-nowrap"
             >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Resource
-                </>
-              )}
+              {isLoading
+                ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                    Processing...
+                  </>
+                )
+                : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Resource
+                  </>
+                )}
             </Button>
           </div>
         </form>

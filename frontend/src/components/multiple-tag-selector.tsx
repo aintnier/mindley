@@ -93,60 +93,70 @@ export function MultipleTagSelector({
             className="w-full justify-between h-10 px-3 py-2"
           >
             <div className="flex items-center gap-1 flex-1 overflow-hidden">
-              {selectedTags.length === 0 ? (
-                <span className="text-muted-foreground text-sm">
-                  {placeholder}
-                </span>
-              ) : selectedTags.length > 3 ? (
-                <>
-                  <Badge
-                    variant="tag"
-                    className={`text-xs px-2 py-0.5 cursor-pointer shrink-0 ${getTagColor(
-                      selectedTags[0]
-                    )}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTagRemove(selectedTags[0]);
-                    }}
-                  >
-                    {selectedTags[0]}
-                    <X className="ml-1 h-3 w-3" />
-                  </Badge>
-                  <Badge
-                    variant="tag"
-                    className={`text-xs cursor-pointer shrink-0 ${getTagColor(
-                      selectedTags[1]
-                    )}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTagRemove(selectedTags[1]);
-                    }}
-                  >
-                    {selectedTags[1]}
-                    <X className="ml-1 h-3 w-3" />
-                  </Badge>
-                  <Badge variant="outline" className="text-xs shrink-0">
-                    +{selectedTags.length - 2} more
-                  </Badge>
-                </>
-              ) : (
-                selectedTags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="tag"
-                    className={`text-xs cursor-pointer shrink-0 ${getTagColor(
-                      tag
-                    )}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTagRemove(tag);
-                    }}
-                  >
-                    {tag}
-                    <X className="ml-1 h-3 w-3" />
-                  </Badge>
-                ))
-              )}
+              {selectedTags.length === 0
+                ? (
+                  <span className="text-muted-foreground text-sm">
+                    {placeholder}
+                  </span>
+                )
+                : selectedTags.length > 3
+                ? (
+                  <>
+                    <Badge
+                      variant="tag"
+                      className={`text-xs px-2 py-0.5 cursor-pointer shrink-0 ${
+                        getTagColor(
+                          selectedTags[0],
+                        )
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTagRemove(selectedTags[0]);
+                      }}
+                    >
+                      {selectedTags[0]}
+                      <X className="ml-1 h-3 w-3" />
+                    </Badge>
+                    <Badge
+                      variant="tag"
+                      className={`text-xs cursor-pointer shrink-0 ${
+                        getTagColor(
+                          selectedTags[1],
+                        )
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTagRemove(selectedTags[1]);
+                      }}
+                    >
+                      {selectedTags[1]}
+                      <X className="ml-1 h-3 w-3" />
+                    </Badge>
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      +{selectedTags.length - 2} more
+                    </Badge>
+                  </>
+                )
+                : (
+                  selectedTags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="tag"
+                      className={`text-xs cursor-pointer shrink-0 ${
+                        getTagColor(
+                          tag,
+                        )
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTagRemove(tag);
+                      }}
+                    >
+                      {tag}
+                      <X className="ml-1 h-3 w-3" />
+                    </Badge>
+                  ))
+                )}
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -171,7 +181,9 @@ export function MultipleTagSelector({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        selectedTags.includes(tag) ? "opacity-100" : "opacity-0"
+                        selectedTags.includes(tag)
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                     {tag}

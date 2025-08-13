@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import mindleyIcon from "@/assets/mindley-icon.svg";
 
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
 
 import { auth } from "@/lib/supabase";
-import { otpSchema, type OtpFormData } from "@/lib/validations";
+import { type OtpFormData, otpSchema } from "@/lib/validations";
 
 export default function VerifyOtpPage() {
   const [isLoading, setIsLoading] = useState(false);

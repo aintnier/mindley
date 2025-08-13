@@ -5,7 +5,6 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-
 const CREATE_RESOURCE_URL = `${supabaseUrl}/functions/v1/create-resource`;
 const READ_RESOURCE_URL = `${supabaseUrl}/functions/v1/read-resource`;
 const UPDATE_RESOURCE_URL = `${supabaseUrl}/functions/v1/update-resource`;
@@ -44,7 +43,8 @@ function mapResourceFields(resource: RawResourceData): Resource {
     summary: resource.summary as string,
     tags: resource.tags as string[],
     thumbnail_link: resource.thumbnail_link || null,
-    processed_date: (resource.processed_date ?? resource.processed_at ?? new Date().toISOString()) as string,
+    processed_date: (resource.processed_date ?? resource.processed_at ??
+      new Date().toISOString()) as string,
     user_id: resource.user_id as string,
   };
 }
@@ -63,10 +63,13 @@ export const resourceService = {
 
   async getResourceById(id: string): Promise<Resource | null> {
     const token = await getAccessToken();
-    const res = await fetch(`${READ_RESOURCE_URL}?id=${encodeURIComponent(id)}`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${READ_RESOURCE_URL}?id=${encodeURIComponent(id)}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) return null;
     const data = await res.json();
     return data ? mapResourceFields(data) : null;
@@ -84,19 +87,26 @@ export const resourceService = {
     });
     if (!res.ok) throw new Error("Errore creazione risorsa");
     // The create-resource function responds with 202, does not return the resource immediately
-    return { ...data, id: "pending", processed_date: new Date().toISOString() } as Resource;
+    return {
+      ...data,
+      id: "pending",
+      processed_date: new Date().toISOString(),
+    } as Resource;
   },
 
   async updateResource(id: string, data: Partial<Resource>): Promise<Resource> {
     const token = await getAccessToken();
-    const res = await fetch(`${UPDATE_RESOURCE_URL}?id=${encodeURIComponent(id)}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const res = await fetch(
+      `${UPDATE_RESOURCE_URL}?id=${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
       },
-      body: JSON.stringify(data),
-    });
+    );
     if (!res.ok) throw new Error("Errore aggiornamento risorsa");
     const updated = await res.json();
     return mapResourceFields(updated);
@@ -104,10 +114,13 @@ export const resourceService = {
 
   async deleteResource(id: string): Promise<void> {
     const token = await getAccessToken();
-    const res = await fetch(`${DELETE_RESOURCE_URL}?id=${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${DELETE_RESOURCE_URL}?id=${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     if (!res.ok) throw new Error("Errore eliminazione risorsa");
   },
 };

@@ -107,7 +107,7 @@ jobs:
           echo "Supabase Functions CI: ${{ needs.supabase-functions-ci.result }}"
           echo "Security Scan: ${{ needs.security-scan.result }}"
 
-          if [ "${{ needs.frontend-ci.result }}" == "failure" ] || 
+          if [ "${{ needs.frontend-ci.result }}" == "failure" ] ||
              [ "${{ needs.supabase-functions-ci.result }}" == "failure" ]; then
             echo "❌ CI pipeline failed"
             exit 1

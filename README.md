@@ -1,6 +1,7 @@
 # Mindley App
 
-A full-stack application built with React/TypeScript frontend and Supabase backend.
+A full-stack application built with React/TypeScript frontend and Supabase
+backend.
 
 ## Project Structure
 
@@ -15,7 +16,8 @@ A full-stack application built with React/TypeScript frontend and Supabase backe
 
 ### Continuous Integration
 
-The CI pipeline runs on every push and pull request to `main` and `develop` branches. It includes:
+The CI pipeline runs on every push and pull request to `main` and `develop`
+branches. It includes:
 
 #### Frontend CI
 

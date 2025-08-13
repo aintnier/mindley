@@ -55,8 +55,7 @@ export function CompactResourceFilters({
     });
   };
 
-  const hasActiveFilters =
-    filters.search ||
+  const hasActiveFilters = filters.search ||
     filters.contentType !== "all" ||
     filters.selectedTags.length > 0;
 
@@ -92,8 +91,7 @@ export function CompactResourceFilters({
               tagCounts={tagCounts}
               selectedTags={filters.selectedTags}
               onTagsChange={(tags) =>
-                onFiltersChange({ ...filters, selectedTags: tags })
-              }
+                onFiltersChange({ ...filters, selectedTags: tags })}
               placeholder="Filter by tags..."
             />
           </div>
@@ -102,8 +100,7 @@ export function CompactResourceFilters({
           <Select
             value={filters.contentType}
             onValueChange={(value: any) =>
-              onFiltersChange({ ...filters, contentType: value })
-            }
+              onFiltersChange({ ...filters, contentType: value })}
           >
             <SelectTrigger className="w-32">
               <SelectValue />

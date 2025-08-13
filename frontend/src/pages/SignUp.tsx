@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ModeToggle } from "@/components/mode-toggle";
 
 import { auth } from "@/lib/supabase";
-import { signUpSchema, type SignUpFormData } from "@/lib/validations";
+import { type SignUpFormData, signUpSchema } from "@/lib/validations";
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,7 +48,7 @@ export default function SignUpPage() {
     try {
       const { data: authData, error } = await auth.signUp(
         data.email,
-        data.password
+        data.password,
       );
 
       if (error) {
@@ -240,11 +240,9 @@ export default function SignUpPage() {
                             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                             onClick={() => setShowPassword(!showPassword)}
                           >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showPassword
+                              ? <EyeOff className="h-4 w-4" />
+                              : <Eye className="h-4 w-4" />}
                           </Button>
                         )}
                       </div>
@@ -280,14 +278,11 @@ export default function SignUpPage() {
                             size="sm"
                             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                             onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
+                              setShowConfirmPassword(!showConfirmPassword)}
                           >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showConfirmPassword
+                              ? <EyeOff className="h-4 w-4" />
+                              : <Eye className="h-4 w-4" />}
                           </Button>
                         )}
                       </div>
