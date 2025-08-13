@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -20,12 +20,20 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { mockResources } from "@/data/mockResources";
+
+import { resourceService } from "@/services/resourceService";
+import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@supabase/supabase-js";
 import type { Resource, CreateResourceRequest } from "@/types/resource";
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 export default function Dashboard() {
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const [resources, setResources] = useState<Resource[]>(mockResources);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
@@ -34,6 +42,69 @@ export default function Dashboard() {
     sortOrder: "desc",
     selectedTags: [],
   });
+
+  // Load resources and setup realtime subscription
+  useEffect(() => {
+    let subscription: any;
+
+    const loadResources = () => {
+      resourceService
+        .getAllResources()
+        .then((data) => {
+          console.log("[Dashboard] Loaded resources:", data.length);
+          setResources(data);
+        })
+        .catch(console.error);
+    };
+
+    loadResources();
+
+    // Realtime setup with retry logic
+    const setupRealtime = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+
+        subscription = supabase
+          .channel(`resources-${user.id}-${Date.now()}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "resources",
+            },
+            (payload) => {
+              console.log("[Realtime] INSERT event received:", payload);
+              // Check if the resource belongs to the current user
+              if (payload.new && payload.new.user_id === user.id) {
+                loadResources();
+                toast({
+                  title: "Resource ready!",
+                  description:
+                    "A new resource has been processed and is now available in your dashboard.",
+                  duration: 6000,
+                  variant: "default",
+                });
+              }
+            }
+          )
+          .subscribe((status, err) => {
+            console.log("[Realtime] Subscription status:", status, err);
+          });
+      } catch (error) {
+        console.error("[Realtime] Setup error:", error);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (subscription) supabase.removeChannel(subscription);
+    };
+  }, []);
 
   // Extract all unique tags from resources
   const availableTags = useMemo(() => {
@@ -60,7 +131,7 @@ export default function Dashboard() {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
           resource.title.toLowerCase().includes(searchLower) ||
-          resource.author.toLowerCase().includes(searchLower) ||
+          (resource.author ?? "").toLowerCase().includes(searchLower) ||
           resource.summary.toLowerCase().includes(searchLower) ||
           resource.tags.some((tag) => tag.toLowerCase().includes(searchLower));
 
@@ -93,16 +164,16 @@ export default function Dashboard() {
 
       switch (filters.sortBy) {
         case "date":
-          aValue = new Date(a.published_date);
-          bValue = new Date(b.published_date);
+          aValue = new Date(a.published_date ?? "");
+          bValue = new Date(b.published_date ?? "");
           break;
         case "title":
           aValue = a.title.toLowerCase();
           bValue = b.title.toLowerCase();
           break;
         case "author":
-          aValue = a.author.toLowerCase();
-          bValue = b.author.toLowerCase();
+          aValue = (a.author ?? "").toLowerCase();
+          bValue = (b.author ?? "").toLowerCase();
           break;
         default:
           return 0;
@@ -118,26 +189,18 @@ export default function Dashboard() {
 
   const handleAddResource = async (data: CreateResourceRequest) => {
     setIsAddingResource(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Create mock resource (in real app, this would come from the API)
-    const newResource: Resource = {
-      id: Date.now().toString(),
-      title: "Nuova Risorsa Aggiunta",
-      author: "Autore Simulato",
-      source_url: data.url,
-      published_date: new Date().toISOString(),
-      content_type: data.url.includes("youtube") ? "youtube" : "article",
-      summary:
-        "Questo è un riassunto simulato della risorsa appena aggiunta. In una vera applicazione, questo contenuto verrebbe generato automaticamente dal workflow di elaborazione.",
-      tags: ["Nuovo", "Simulato", "Test"],
-      processed_at: new Date().toISOString(),
-    };
-
-    setResources((prev) => [newResource, ...prev]);
-    setIsAddingResource(false);
+    toast({
+      title: "Processing resource...",
+      description:
+        "Your resource is being processed. It will appear automatically in the dashboard when ready.",
+      duration: 6000,
+      variant: "default",
+    });
+    try {
+      await resourceService.createResource(data);
+    } finally {
+      setIsAddingResource(false);
+    }
   };
 
   const handleViewDetails = (id: string) => {

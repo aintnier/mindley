@@ -1,16 +1,20 @@
+
 export interface Resource {
   id: string;
   title: string;
-  author: string;
-  source_url: string;
-  published_date: string;
+  author: string | null;
+  link: string;
+  published_date: string | null;
   content_type: "youtube" | "article";
   summary: string;
   tags: string[];
-  processed_at: string;
+  thumbnail_link: string | null;
+  processed_date: string;
+  user_id: string;
 }
 
+
 export interface CreateResourceRequest {
-  url: string;
+  link: string;
   language?: "original" | "italian" | "english";
 }

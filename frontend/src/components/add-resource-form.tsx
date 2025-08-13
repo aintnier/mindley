@@ -37,7 +37,7 @@ export function AddResourceForm({
     if (!url.trim()) return;
 
     onSubmit({
-      url: url.trim(),
+      link: url.trim(),
       language,
     });
 

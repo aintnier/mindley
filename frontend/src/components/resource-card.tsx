@@ -71,7 +71,7 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.open(resource.source_url, "_blank")}
+            onClick={() => window.open(resource.link, "_blank")}
             className="h-8 w-8 p-0"
           >
             <ExternalLink className="h-3 w-3" />
@@ -86,10 +86,19 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
             <span>{resource.author}</span>
             <span>•</span>
             <Calendar className="h-3 w-3" />
-            <span>{formatDate(resource.published_date)}</span>
+            <span>{formatDate(resource.published_date ?? "")}</span>
           </CardDescription>
         </div>
       </CardHeader>
+
+      {resource.thumbnail_link && (
+        <img
+          src={resource.thumbnail_link}
+          alt="Resource thumbnail"
+          className="w-full h-40 object-cover rounded-b-none rounded-t-lg"
+          style={{ objectFit: "cover" }}
+        />
+      )}
 
       <CardContent className="flex-1">
         <p className="text-sm text-muted-foreground leading-relaxed">

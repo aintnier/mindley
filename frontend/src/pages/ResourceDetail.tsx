@@ -121,11 +121,8 @@ const ResourceDetail = () => {
       )
     ) {
       try {
-        // In the future this will be an API call
-        // await resourceService.deleteResource(resource.id);
-
-        // For now, just navigate back to dashboard
-        // In real implementation, you might want to show a success message
+        await resourceService.deleteResource(resource.id);
+        alert("Resource deleted successfully.");
         navigate("/dashboard");
       } catch (error) {
         console.error("Error deleting resource:", error);
@@ -281,7 +278,7 @@ const ResourceDetail = () => {
                         <h4 className="text-sm font-medium mb-2">Published</h4>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3 mr-2" />
-                          {formatDate(resource.published_date)}
+                          {formatDate(resource.published_date ?? "")}
                         </div>
                       </div>
 
@@ -318,9 +315,7 @@ const ResourceDetail = () => {
                           size="sm"
                           variant="outline"
                           className="flex-1 justify-between"
-                          onClick={() =>
-                            window.open(resource.source_url, "_blank")
-                          }
+                          onClick={() => window.open(resource.link, "_blank")}
                         >
                           View Original
                           <ExternalLink className="ml-2 size-3" />
@@ -353,6 +348,14 @@ const ResourceDetail = () => {
                 <article className="prose dark:prose-invert prose-lg max-w-none">
                   <h1 className="text-4xl font-bold mb-6">{resource.title}</h1>
 
+                  {resource.thumbnail_link && (
+                    <img
+                      src={resource.thumbnail_link}
+                      alt="Resource thumbnail"
+                      className="w-full h-60 object-cover rounded-lg mb-6"
+                      style={{ objectFit: "cover" }}
+                    />
+                  )}
                   <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/30">
                     <h2 className="text-lg font-semibold mb-3">Summary</h2>
                     <p className="text-muted-foreground leading-relaxed">
@@ -372,7 +375,7 @@ const ResourceDetail = () => {
 
                     <h3>Additional Information</h3>
                     <p className="text-muted-foreground">
-                      Resource added on: {formatDate(resource.processed_at)}
+                      Resource added on: {formatDate(resource.processed_date)}
                     </p>
                   </div>
                 </article>

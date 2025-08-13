@@ -1,37 +1,90 @@
-import { mockResources } from "@/data/mockResources";
+import { createClient } from "@supabase/supabase-js";
 import type { Resource } from "@/types/resource";
 
-// Mock API service that will be replaced with real API calls
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+
+const CREATE_RESOURCE_URL = `${supabaseUrl}/functions/v1/create-resource`;
+const READ_RESOURCE_URL = `${supabaseUrl}/functions/v1/read-resource`;
+const UPDATE_RESOURCE_URL = `${supabaseUrl}/functions/v1/update-resource`;
+const DELETE_RESOURCE_URL = `${supabaseUrl}/functions/v1/delete-resource`;
+
+async function getAccessToken() {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token;
+}
+
+function mapResourceFields(resource: any): Resource {
+  return {
+    ...resource,
+    // Assicura compatibilità con vecchi dati, ma ora usa solo link
+    link: resource.link ?? resource.source_url ?? "",
+    thumbnail_link: resource.thumbnail_link ?? null,
+    processed_date: resource.processed_date ?? resource.processed_at ?? new Date().toISOString(),
+  };
+}
+
 export const resourceService = {
-  // Get all resources
   async getAllResources(): Promise<Resource[]> {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    return mockResources;
+    const token = await getAccessToken();
+    const res = await fetch(READ_RESOURCE_URL, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Errore caricamento risorse");
+    const data = await res.json();
+    return Array.isArray(data) ? data.map(mapResourceFields) : [];
   },
 
-  // Get resource by ID
   async getResourceById(id: string): Promise<Resource | null> {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return mockResources.find((resource) => resource.id === id) || null;
+    const token = await getAccessToken();
+    const res = await fetch(`${READ_RESOURCE_URL}?id=${encodeURIComponent(id)}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data ? mapResourceFields(data) : null;
   },
 
-  // Create new resource (placeholder for future implementation)
-  async createResource(_data: any): Promise<Resource> {
-    // This will be implemented when backend is ready
-    throw new Error("Backend not yet implemented");
+  async createResource(data: Partial<Resource>): Promise<Resource> {
+    const token = await getAccessToken();
+    const res = await fetch(CREATE_RESOURCE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Errore creazione risorsa");
+    // The create-resource function responds with 202, does not return the resource immediately
+    return { ...data, id: "pending", processed_date: new Date().toISOString() } as Resource;
   },
 
-  // Update resource (placeholder for future implementation)
-  async updateResource(_id: string, _data: any): Promise<Resource> {
-    // This will be implemented when backend is ready
-    throw new Error("Backend not yet implemented");
+  async updateResource(id: string, data: Partial<Resource>): Promise<Resource> {
+    const token = await getAccessToken();
+    const res = await fetch(`${UPDATE_RESOURCE_URL}?id=${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Errore aggiornamento risorsa");
+    const updated = await res.json();
+    return mapResourceFields(updated);
   },
 
-  // Delete resource (placeholder for future implementation)
-  async deleteResource(_id: string): Promise<void> {
-    // This will be implemented when backend is ready
-    throw new Error("Backend not yet implemented");
+  async deleteResource(id: string): Promise<void> {
+    const token = await getAccessToken();
+    const res = await fetch(`${DELETE_RESOURCE_URL}?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Errore eliminazione risorsa");
   },
 };
