@@ -60,9 +60,11 @@ const ResourceDetail = () => {
   }, [id]);
 
   const getContentTypeIcon = (contentType: string) => {
-    return contentType === "youtube"
-      ? <Youtube className="h-4 w-4 text-red-500" />
-      : <FileText className="h-4 w-4 text-blue-500" />;
+    return contentType === "youtube" ? (
+      <Youtube className="h-4 w-4 text-red-500" />
+    ) : (
+      <FileText className="h-4 w-4 text-blue-500" />
+    );
   };
 
   const getTagColor = (tag: string) => {
@@ -115,7 +117,7 @@ const ResourceDetail = () => {
     if (
       resource &&
       window.confirm(
-        `Are you sure you want to delete "${resource.title}"? This action cannot be undone.`,
+        `Are you sure you want to delete "${resource.title}"? This action cannot be undone.`
       )
     ) {
       try {
@@ -253,6 +255,33 @@ const ResourceDetail = () => {
               {/* Sidebar */}
               <div className="order-last md:order-none md:col-span-4 lg:col-span-3">
                 <aside className="flex flex-col gap-6">
+                  {/* Image for smaller screens */}
+                  <div className="xl:hidden">
+                    {resource.thumbnail_link ? (
+                      <img
+                        src={resource.thumbnail_link}
+                        alt={
+                          resource.title
+                            ? `${resource.title} thumbnail`
+                            : "Image unavailable"
+                        }
+                        className="rounded-xl shadow-lg border border-border bg-muted w-full transition-all duration-300"
+                        style={{
+                          maxHeight: "300px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center rounded-xl border border-muted/40 bg-muted h-40 w-full">
+                        <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug">
+                          {resource.title
+                            ? `${resource.title} thumbnail`
+                            : "Image unavailable"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Resource Info */}
                   <div className="border-border bg-card overflow-hidden rounded-lg border shadow-sm">
                     <div className="border-border bg-muted/50 border-b px-5 py-4">
@@ -266,17 +295,30 @@ const ResourceDetail = () => {
                     <div className="p-5 space-y-4">
                       <div>
                         <h4 className="text-sm font-medium mb-2">Author</h4>
-                        <div className="flex items-center text-sm text-muted-foreground">
+                        <div className="flex items-center text-sm">
                           <User className="h-3 w-3 mr-2" />
-                          {resource.author}
+                          {!resource.author || resource.author.trim() === "" ? (
+                            <span className="text-muted-foreground/70">
+                              No author
+                            </span>
+                          ) : (
+                            resource.author
+                          )}
                         </div>
                       </div>
 
                       <div>
                         <h4 className="text-sm font-medium mb-2">Published</h4>
-                        <div className="flex items-center text-sm text-muted-foreground">
+                        <div className="flex items-center text-sm">
                           <Calendar className="h-3 w-3 mr-2" />
-                          {formatDate(resource.published_date ?? "")}
+                          {!resource.published_date ||
+                          isNaN(new Date(resource.published_date).getTime()) ? (
+                            <span className="text-muted-foreground/70">
+                              No date
+                            </span>
+                          ) : (
+                            formatDate(resource.published_date)
+                          )}
                         </div>
                       </div>
 
@@ -287,11 +329,9 @@ const ResourceDetail = () => {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className={`text-xs ${
-                                getTagColor(
-                                  tag,
-                                )
-                              } cursor-default pointer-events-none`}
+                              className={`text-xs ${getTagColor(
+                                tag
+                              )} cursor-default pointer-events-none`}
                             >
                               {tag}
                             </Badge>
@@ -346,40 +386,81 @@ const ResourceDetail = () => {
               {/* Main Content */}
               <div className="md:col-span-8 lg:col-span-9">
                 <article className="prose dark:prose-invert prose-lg max-w-none">
-                  <h1 className="text-4xl font-bold mb-6">{resource.title}</h1>
-
-                  {resource.thumbnail_link && (
-                    <img
-                      src={resource.thumbnail_link}
-                      alt="Resource thumbnail"
-                      className="w-full h-60 object-cover rounded-lg mb-6"
-                      style={{ objectFit: "cover" }}
-                    />
-                  )}
+                  <h1 className="text-4xl font-bold mb-6 text-center">
+                    {resource.title}
+                  </h1>
                   <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/30">
                     <h2 className="text-lg font-semibold mb-3">Summary</h2>
                     <p className="text-muted-foreground leading-relaxed">
                       {resource.summary}
                     </p>
                   </div>
+                  {(() => {
+                    let keyPoints: string[] = [];
+                    if (Array.isArray(resource.key_points)) {
+                      keyPoints = resource.key_points;
+                    } else if (typeof resource.key_points === "string") {
+                      try {
+                        const parsed = JSON.parse(resource.key_points);
+                        if (Array.isArray(parsed)) keyPoints = parsed;
+                      } catch {}
+                    }
+                    if (keyPoints.length > 0) {
+                      return (
+                        <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/20 xl:grid xl:grid-cols-10 xl:gap-6">
+                          {/* Key Points */}
+                          <div className="xl:col-span-7">
+                            <h2 className="text-lg font-semibold mb-4">
+                              Key Points
+                            </h2>
+                            <ul className="space-y-3">
+                              {keyPoints.map((point, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start gap-3"
+                                >
+                                  <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                                    {index + 1}
+                                  </span>
+                                  <p className="text-muted-foreground leading-relaxed">
+                                    {point}
+                                  </p>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
 
-                  {resource.key_points && resource.key_points.length > 0 && (
-                    <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/20">
-                      <h2 className="text-lg font-semibold mb-4">Key Points</h2>
-                      <ul className="space-y-3">
-                        {resource.key_points.map((point, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                              {index + 1}
-                            </span>
-                            <p className="text-muted-foreground leading-relaxed">
-                              {point}
-                            </p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                          {/* Image - Only visible on xl screens and larger */}
+                          <div className="hidden xl:flex xl:col-span-3 items-center justify-center">
+                            {resource.thumbnail_link ? (
+                              <img
+                                src={resource.thumbnail_link}
+                                alt={
+                                  resource.title
+                                    ? `${resource.title} thumbnail`
+                                    : "Image unavailable"
+                                }
+                                className="rounded-xl shadow-lg border border-border bg-muted w-full transition-all duration-300"
+                                style={{
+                                  maxHeight: "300px",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center rounded-xl border border-muted/40 bg-muted h-40 w-full">
+                                <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug">
+                                  {resource.title
+                                    ? `${resource.title} thumbnail`
+                                    : "Image unavailable"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
 
                   {/* Content placeholder - in real implementation this would be the processed content */}
                   <div className="space-y-6">
