@@ -25,6 +25,7 @@ interface RawResourceData {
   content_type?: string;
   summary?: string;
   tags?: string[];
+  key_points?: string[];
   thumbnail_link?: string;
   processed_date?: string;
   processed_at?: string;
@@ -42,6 +43,7 @@ function mapResourceFields(resource: RawResourceData): Resource {
     content_type: resource.content_type as "youtube" | "article",
     summary: resource.summary as string,
     tags: resource.tags as string[],
+    key_points: resource.key_points as string[] || [],
     thumbnail_link: resource.thumbnail_link || null,
     processed_date: (resource.processed_date ?? resource.processed_at ??
       new Date().toISOString()) as string,

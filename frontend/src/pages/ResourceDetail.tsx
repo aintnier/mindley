@@ -363,16 +363,26 @@ const ResourceDetail = () => {
                     </p>
                   </div>
 
+                  {resource.key_points && resource.key_points.length > 0 && (
+                    <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/20">
+                      <h2 className="text-lg font-semibold mb-4">Key Points</h2>
+                      <ul className="space-y-3">
+                        {resource.key_points.map((point, index) => (
+                          <li key={index} className="flex items-start gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                              {index + 1}
+                            </span>
+                            <p className="text-muted-foreground leading-relaxed">
+                              {point}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   {/* Content placeholder - in real implementation this would be the processed content */}
                   <div className="space-y-6">
-                    <h3>Key Points</h3>
-                    <ul>
-                      <li>Main concepts and ideas from the resource</li>
-                      <li>Important takeaways and insights</li>
-                      <li>Actionable information and recommendations</li>
-                      <li>Related topics and further reading suggestions</li>
-                    </ul>
-
                     <h3>Additional Information</h3>
                     <p className="text-muted-foreground">
                       Resource added on: {formatDate(resource.processed_date)}

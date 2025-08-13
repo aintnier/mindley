@@ -7,6 +7,7 @@ export interface Resource {
   content_type: "youtube" | "article";
   summary: string;
   tags: string[];
+  key_points: string[];
   thumbnail_link: string | null;
   processed_date: string;
   user_id: string;
