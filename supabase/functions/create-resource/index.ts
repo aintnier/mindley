@@ -38,10 +38,13 @@ Deno.serve(async (req) => {
   const payload = parseJwt(jwt);
   const user_id = payload?.sub;
   if (!user_id) {
-    return new Response(JSON.stringify({ error: "Invalid JWT" }), {
-      status: 401,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({ error: "Invalid JWT" }),
+      {
+        status: 401,
+        headers: corsHeaders,
+      },
+    );
   }
 
   // Input
@@ -49,16 +52,22 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON" }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
   }
   if (!body.link) {
-    return new Response(JSON.stringify({ error: "Missing link" }), {
-      status: 400,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({ error: "Missing link" }),
+      {
+        status: 400,
+        headers: corsHeaders,
+      },
+    );
   }
 
   // Inoltra a n8n (webhook pubblico EC2)
@@ -87,10 +96,13 @@ Deno.serve(async (req) => {
   }
 
   // Risposta immediata (il salvataggio su resources avverrà da n8n)
-  return new Response(JSON.stringify({ success: true }), {
-    status: 202,
-    headers: corsHeaders,
-  });
+  return new Response(
+    JSON.stringify({ success: true }),
+    {
+      status: 202,
+      headers: corsHeaders,
+    },
+  );
 });
 
 /* To invoke locally:

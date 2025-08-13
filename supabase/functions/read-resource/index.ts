@@ -4,12 +4,13 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
@@ -18,17 +19,23 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
   if (req.method !== "GET") {
-    return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: corsHeaders,
+    });
   }
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: "Missing Authorization header" }), { status: 401, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: "Missing Authorization header" }),
+      { status: 401, headers: corsHeaders },
+    );
   }
   const jwt = authHeader.replace("Bearer ", "");
   function parseJwt(token: string) {
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      return JSON.parse(atob(token.split(".")[1]));
     } catch {
       return null;
     }
@@ -36,13 +43,16 @@ Deno.serve(async (req) => {
   const payload = parseJwt(jwt);
   const user_id = payload?.sub;
   if (!user_id) {
-    return new Response(JSON.stringify({ error: "Invalid JWT" }), { status: 401, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: "Invalid JWT" }),
+      { status: 401, headers: corsHeaders },
+    );
   }
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
-    { global: { headers: { Authorization: authHeader } } }
+    { global: { headers: { Authorization: authHeader } } },
   );
 
   const url = new URL(req.url);
@@ -57,16 +67,32 @@ Deno.serve(async (req) => {
       .eq("id", id)
       .eq("user_id", user_id)
       .single();
-    if (error) return new Response(JSON.stringify({ error }), { status: 404, headers: corsHeaders });
-    return new Response(JSON.stringify(data), { status: 200, headers: corsHeaders });
+    if (error) {
+      return new Response(
+        JSON.stringify({ error }),
+        { status: 404, headers: corsHeaders },
+      );
+    }
+    return new Response(
+      JSON.stringify(data),
+      { status: 200, headers: corsHeaders },
+    );
   } else {
     // Get all resources for this user
     const { data, error } = await supabaseClient
       .from("resources")
       .select("*")
       .eq("user_id", user_id);
-    if (error) return new Response(JSON.stringify({ error }), { status: 400, headers: corsHeaders });
-    return new Response(JSON.stringify(data), { status: 200, headers: corsHeaders });
+    if (error) {
+      return new Response(
+        JSON.stringify({ error }),
+        { status: 400, headers: corsHeaders },
+      );
+    }
+    return new Response(
+      JSON.stringify(data),
+      { status: 200, headers: corsHeaders },
+    );
   }
 });
 
