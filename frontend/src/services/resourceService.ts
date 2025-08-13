@@ -16,13 +16,36 @@ async function getAccessToken() {
   return data.session?.access_token;
 }
 
-function mapResourceFields(resource: any): Resource {
+interface RawResourceData {
+  id?: string;
+  title?: string;
+  author?: string;
+  link?: string;
+  source_url?: string;
+  published_date?: string;
+  content_type?: string;
+  summary?: string;
+  tags?: string[];
+  thumbnail_link?: string;
+  processed_date?: string;
+  processed_at?: string;
+  user_id?: string;
+  [key: string]: unknown;
+}
+
+function mapResourceFields(resource: RawResourceData): Resource {
   return {
-    ...resource,
-    // Assicura compatibilità con vecchi dati, ma ora usa solo link
-    link: resource.link ?? resource.source_url ?? "",
-    thumbnail_link: resource.thumbnail_link ?? null,
-    processed_date: resource.processed_date ?? resource.processed_at ?? new Date().toISOString(),
+    id: resource.id as string,
+    title: resource.title as string,
+    author: resource.author || null,
+    link: (resource.link ?? resource.source_url ?? "") as string,
+    published_date: resource.published_date || null,
+    content_type: resource.content_type as "youtube" | "article",
+    summary: resource.summary as string,
+    tags: resource.tags as string[],
+    thumbnail_link: resource.thumbnail_link || null,
+    processed_date: (resource.processed_date ?? resource.processed_at ?? new Date().toISOString()) as string,
+    user_id: resource.user_id as string,
   };
 }
 

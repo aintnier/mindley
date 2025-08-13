@@ -74,7 +74,7 @@ export default function VerifyOtpPage() {
         });
         navigate("/dashboard");
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",
@@ -107,7 +107,7 @@ export default function VerifyOtpPage() {
           description: "A new verification code has been sent to your email.",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",

@@ -31,7 +31,7 @@ export function NavUser() {
         title: "Logout effettuato",
         description: "Sei stato disconnesso con successo.",
       });
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Errore",

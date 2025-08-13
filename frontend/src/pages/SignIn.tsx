@@ -62,7 +62,7 @@ export default function SignInPage() {
         });
         navigate("/dashboard");
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",
@@ -86,7 +86,7 @@ export default function SignInPage() {
           description: error.message,
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",

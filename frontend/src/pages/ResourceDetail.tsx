@@ -46,8 +46,8 @@ const ResourceDetail = () => {
       try {
         const foundResource = await resourceService.getResourceById(id!);
         setResource(foundResource);
-      } catch (error) {
-        console.error("Error loading resource:", error);
+      } catch (err) {
+        console.error("Error loading resource:", err);
         setResource(null);
       } finally {
         setIsLoading(false);
@@ -103,7 +103,7 @@ const ResourceDetail = () => {
           text: resource.summary,
           url: window.location.href,
         });
-      } catch (error) {
+      } catch {
         // Fallback to copying URL to clipboard
         navigator.clipboard.writeText(window.location.href);
       }
@@ -124,8 +124,8 @@ const ResourceDetail = () => {
         await resourceService.deleteResource(resource.id);
         alert("Resource deleted successfully.");
         navigate("/dashboard");
-      } catch (error) {
-        console.error("Error deleting resource:", error);
+      } catch (err) {
+        console.error("Error deleting resource:", err);
         alert("Failed to delete resource. Please try again.");
       }
     }

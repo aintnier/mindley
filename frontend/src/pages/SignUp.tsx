@@ -76,7 +76,7 @@ export default function SignUpPage() {
         });
         navigate("/dashboard");
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",
@@ -100,7 +100,7 @@ export default function SignUpPage() {
           description: error.message,
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",

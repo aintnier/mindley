@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   // Load resources and setup realtime subscription
   useEffect(() => {
-    let subscription: any;
+    let subscription: ReturnType<typeof supabase.channel> | null = null;
 
     const loadResources = () => {
       resourceService
@@ -93,8 +93,8 @@ export default function Dashboard() {
           .subscribe((status, err) => {
             console.log("[Realtime] Subscription status:", status, err);
           });
-      } catch (error) {
-        console.error("[Realtime] Setup error:", error);
+      } catch (err) {
+        console.error("[Realtime] Setup error:", err);
       }
     };
 
@@ -103,7 +103,7 @@ export default function Dashboard() {
     return () => {
       if (subscription) supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [toast]);
 
   // Extract all unique tags from resources
   const availableTags = useMemo(() => {
@@ -124,7 +124,7 @@ export default function Dashboard() {
 
   // Filter and sort resources
   const filteredResources = useMemo(() => {
-    let filtered = resources.filter((resource) => {
+    const filtered = resources.filter((resource) => {
       // Search filter
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();

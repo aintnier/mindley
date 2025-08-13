@@ -4,11 +4,12 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -21,12 +22,15 @@ Deno.serve(async (req) => {
   // Auth
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: "Missing Authorization header" }), { status: 401, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: "Missing Authorization header" }),
+      { status: 401, headers: corsHeaders },
+    );
   }
   const jwt = authHeader.replace("Bearer ", "");
   function parseJwt(token: string) {
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      return JSON.parse(atob(token.split(".")[1]));
     } catch {
       return null;
     }
@@ -34,7 +38,10 @@ Deno.serve(async (req) => {
   const payload = parseJwt(jwt);
   const user_id = payload?.sub;
   if (!user_id) {
-    return new Response(JSON.stringify({ error: "Invalid JWT" }), { status: 401, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: "Invalid JWT" }), {
+      status: 401,
+      headers: corsHeaders,
+    });
   }
 
   // Input
@@ -42,14 +49,21 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+      status: 400,
+      headers: corsHeaders,
+    });
   }
   if (!body.link) {
-    return new Response(JSON.stringify({ error: "Missing link" }), { status: 400, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: "Missing link" }), {
+      status: 400,
+      headers: corsHeaders,
+    });
   }
 
   // Inoltra a n8n (webhook pubblico EC2)
-  const n8nWebhookUrl = "http://51.21.76.114:5678/webhook/72fdabf2-3d1c-4534-9b18-b1e04f70db87";
+  const n8nWebhookUrl =
+    "http://51.21.76.114:5678/webhook/72fdabf2-3d1c-4534-9b18-b1e04f70db87";
   const n8nPayload = { link: body.link, user_id };
   let n8nRes;
   try {
@@ -59,15 +73,24 @@ Deno.serve(async (req) => {
       body: JSON.stringify(n8nPayload),
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: "Failed to contact workflow" }), { status: 502, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: "Failed to contact workflow" }),
+      { status: 502, headers: corsHeaders },
+    );
   }
 
   if (!n8nRes.ok) {
-    return new Response(JSON.stringify({ error: "Workflow error", status: n8nRes.status }), { status: 502, headers: corsHeaders });
+    return new Response(
+      JSON.stringify({ error: "Workflow error", status: n8nRes.status }),
+      { status: 502, headers: corsHeaders },
+    );
   }
 
   // Risposta immediata (il salvataggio su resources avverrà da n8n)
-  return new Response(JSON.stringify({ success: true }), { status: 202, headers: corsHeaders });
+  return new Response(JSON.stringify({ success: true }), {
+    status: 202,
+    headers: corsHeaders,
+  });
 });
 
 /* To invoke locally:
