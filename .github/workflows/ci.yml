@@ -24,10 +24,10 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: frontend/package.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run TypeScript type check
         run: npx tsc --noEmit
@@ -93,13 +93,6 @@ jobs:
           npm audit --audit-level=high
         continue-on-error: true
 
-      - name: Upload Dependency Scan results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: results.sarif
-        continue-on-error: true
-
   # Overall CI status check
   ci-status:
     name: CI Status Check
@@ -110,10 +103,14 @@ jobs:
     steps:
       - name: Check CI results
         run: |
+          echo "Frontend CI: ${{ needs.frontend-ci.result }}"
+          echo "Supabase Functions CI: ${{ needs.supabase-functions-ci.result }}"
+          echo "Security Scan: ${{ needs.security-scan.result }}"
+          
           if [ "${{ needs.frontend-ci.result }}" == "failure" ] || 
              [ "${{ needs.supabase-functions-ci.result }}" == "failure" ]; then
-            echo "CI pipeline failed"
+            echo "❌ CI pipeline failed"
             exit 1
           else
-            echo "CI pipeline passed successfully"
+            echo "✅ CI pipeline passed successfully"
           fi
