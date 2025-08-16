@@ -403,7 +403,10 @@ const ResourceDetail = () => {
                       try {
                         const parsed = JSON.parse(resource.key_points);
                         if (Array.isArray(parsed)) keyPoints = parsed;
-                      } catch {}
+                      } catch (err) {
+                        // Silently ignore invalid JSON in key_points; leave keyPoints as empty array
+                        // (Optional) console.debug('Invalid key_points JSON', err);
+                      }
                     }
                     if (keyPoints.length > 0) {
                       return (
