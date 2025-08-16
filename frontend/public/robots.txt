@@ -1,0 +1,7 @@
+# robots.txt for Mindley
+User-agent: *
+Allow: /
+
+# Block build artifacts (none currently) and API function paths if exposed via rewrites
+# Disallow: /_internal/
+
