@@ -70,9 +70,9 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Inoltra a n8n (webhook pubblico EC2)
-  const n8nWebhookUrl =
-    "http://51.21.76.114:5678/webhook/72fdabf2-3d1c-4534-9b18-b1e04f70db87";
+  // Forwards to n8n production URL
+  const n8nWebhookUrl = Deno.env.get("N8N_WEBHOOK_URL") ??
+    "https://n8n.mindley.app/webhook/72fdabf2-3d1c-4534-9b18-b1e04f70db87";
   const n8nPayload = { link: body.link, user_id, language: body.language };
   let n8nRes;
   try {
