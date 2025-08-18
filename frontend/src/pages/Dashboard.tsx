@@ -277,19 +277,17 @@ export default function Dashboard() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium mb-2">
-                  Nessuna risorsa trovata
-                </h3>
+                <h3 className="text-lg font-medium mb-2">No resources found</h3>
                 <p className="text-muted-foreground max-w-md">
                   {filters.search ||
                   filters.contentType !== "all" ||
                   filters.selectedTags.length > 0
-                    ? "Non ci sono risorse che corrispondono ai filtri selezionati. Prova a modificare i criteri di ricerca."
-                    : "Inizia aggiungendo la tua prima risorsa utilizzando il form qui sopra."}
+                    ? "There are no resources matching the selected filters. Try adjusting your search criteria."
+                    : "Start by adding your first resource using the form above."}
                 </p>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-6">
                 {filteredResources.map((resource) => (
                   <ResourceCard
                     key={resource.id}

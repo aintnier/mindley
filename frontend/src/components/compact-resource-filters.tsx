@@ -1,6 +1,5 @@
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultipleTagSelector } from "@/components/multiple-tag-selector";
+import { cn } from "@/lib/utils";
 
 export interface FilterOptions {
   search: string;
@@ -35,6 +35,7 @@ export function CompactResourceFilters({
   resultCount,
 }: CompactResourceFiltersProps) {
   const [searchInput, setSearchInput] = useState(filters.search);
+  const hasTagInfo = filters.selectedTags.length > 0;
 
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
@@ -44,23 +45,15 @@ export function CompactResourceFilters({
     }, 300);
   };
 
-  const clearFilters = () => {
-    setSearchInput("");
-    onFiltersChange({
-      search: "",
-      contentType: "all",
-      sortBy: "date",
-      sortOrder: "desc",
-      selectedTags: [],
-    });
-  };
-
-  const hasActiveFilters = filters.search ||
-    filters.contentType !== "all" ||
-    filters.selectedTags.length > 0;
-
   return (
-    <div className="space-y-4 mb-2">
+    <div
+      className={cn(
+        "space-y-4",
+        "mb-4",
+        hasTagInfo && "md:mb-8",
+        !hasTagInfo && "md:mb-6"
+      )}
+    >
       {/* Results header with controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -72,7 +65,12 @@ export function CompactResourceFilters({
         </div>
 
         {/* Compact filter controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-2",
+            hasTagInfo && "pb-4 md:pb-2"
+          )}
+        >
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -84,23 +82,12 @@ export function CompactResourceFilters({
             />
           </div>
 
-          {/* Tag Selector */}
-          <div className="w-80">
-            <MultipleTagSelector
-              availableTags={availableTags}
-              tagCounts={tagCounts}
-              selectedTags={filters.selectedTags}
-              onTagsChange={(tags) =>
-                onFiltersChange({ ...filters, selectedTags: tags })}
-              placeholder="Filter by tags..."
-            />
-          </div>
-
           {/* Content Type */}
           <Select
             value={filters.contentType}
             onValueChange={(value: any) =>
-              onFiltersChange({ ...filters, contentType: value })}
+              onFiltersChange({ ...filters, contentType: value })
+            }
           >
             <SelectTrigger className="w-32">
               <SelectValue />
@@ -133,13 +120,18 @@ export function CompactResourceFilters({
             </SelectContent>
           </Select>
 
-          {/* Clear filters */}
-          {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Clear
-            </Button>
-          )}
+          {/* Tag Selector */}
+          <div className="w-80 min-w-[18rem]">
+            <MultipleTagSelector
+              availableTags={availableTags}
+              tagCounts={tagCounts}
+              selectedTags={filters.selectedTags}
+              onTagsChange={(tags) =>
+                onFiltersChange({ ...filters, selectedTags: tags })
+              }
+              placeholder="Filter by tags..."
+            />
+          </div>
         </div>
       </div>
     </div>

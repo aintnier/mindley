@@ -23,15 +23,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    // Salva la location corrente per il redirect dopo il login
+    // Save current location for redirect after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
 }
 
-// Componente per proteggere le route di autenticazione (login/signup)
-// se l'utente è già autenticato
+// Component to protect auth routes (login/signup) if user is already authenticated
 export function PublicRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
@@ -48,7 +47,7 @@ export function PublicRoute({ children }: ProtectedRouteProps) {
   }
 
   if (user) {
-    // Se l'utente è già autenticato, redirect alla dashboard
+    // If the user is already authenticated, redirect to dashboard
     return <Navigate to="/dashboard" replace />;
   }
 

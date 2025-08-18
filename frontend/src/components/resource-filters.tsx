@@ -65,7 +65,7 @@ export function ResourceFilters({
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Filter className="h-5 w-5" />
-          <span>Filtri e Ricerca</span>
+          <span>Filters & Search</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -75,7 +75,7 @@ export function ResourceFilters({
           <Input
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Cerca per titolo, autore o contenuto..."
+            placeholder="Search by title, author or content..."
             className="pl-10"
           />
         </div>
@@ -83,29 +83,31 @@ export function ResourceFilters({
         {/* Content Type and Sort */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
-            <label className="text-sm font-medium mb-2 block">Tipo</label>
+            <label className="text-sm font-medium mb-2 block">Type</label>
             <Select
               value={filters.contentType}
               onValueChange={(value: any) =>
-                onFiltersChange({ ...filters, contentType: value })}
+                onFiltersChange({ ...filters, contentType: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tutti</SelectItem>
+                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="youtube">YouTube</SelectItem>
-                <SelectItem value="article">Articoli</SelectItem>
+                <SelectItem value="article">Articles</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Ordina per</label>
+            <label className="text-sm font-medium mb-2 block">Sort by</label>
             <Select
               value={filters.sortBy}
               onValueChange={(value: any) =>
-                onFiltersChange({ ...filters, sortBy: value })}
+                onFiltersChange({ ...filters, sortBy: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -119,18 +121,19 @@ export function ResourceFilters({
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Ordine</label>
+            <label className="text-sm font-medium mb-2 block">Order</label>
             <Select
               value={filters.sortOrder}
               onValueChange={(value: any) =>
-                onFiltersChange({ ...filters, sortOrder: value })}
+                onFiltersChange({ ...filters, sortOrder: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="desc">Discendente</SelectItem>
-                <SelectItem value="asc">Ascendente</SelectItem>
+                <SelectItem value="desc">Descending</SelectItem>
+                <SelectItem value="asc">Ascending</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -146,9 +149,9 @@ export function ResourceFilters({
             {availableTags.map((tag) => (
               <Badge
                 key={tag}
-                variant={filters.selectedTags.includes(tag)
-                  ? "default"
-                  : "outline"}
+                variant={
+                  filters.selectedTags.includes(tag) ? "default" : "outline"
+                }
                 className="cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => toggleTag(tag)}
               >
@@ -163,7 +166,7 @@ export function ResourceFilters({
           filters.contentType !== "all" ||
           filters.selectedTags.length > 0) && (
           <Button variant="outline" onClick={clearFilters} className="w-full">
-            Cancella Filtri
+            Clear Filters
           </Button>
         )}
       </CardContent>

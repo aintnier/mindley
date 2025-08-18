@@ -28,14 +28,14 @@ export function NavUser() {
     try {
       await signOut();
       toast({
-        title: "Logout effettuato",
-        description: "Sei stato disconnesso con successo.",
+        title: "Logged out",
+        description: "You have been signed out successfully.",
       });
     } catch {
       toast({
         variant: "destructive",
-        title: "Errore",
-        description: "Si è verificato un errore durante il logout.",
+        title: "Error",
+        description: "An error occurred while logging out.",
       });
     }
   };
@@ -44,7 +44,7 @@ export function NavUser() {
     return null;
   }
 
-  // Genera le iniziali dal nome o dall'email
+  // Generate initials from name or email
   const getInitials = (name?: string, email?: string) => {
     if (name) {
       return name
@@ -60,8 +60,8 @@ export function NavUser() {
     return "U";
   };
 
-  const displayName = user.user_metadata?.full_name ||
-    user.email?.split("@")[0] || "Utente";
+  const displayName =
+    user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
   const initials = getInitials(user.user_metadata?.full_name, user.email);
 
   return (
@@ -114,12 +114,10 @@ export function NavUser() {
             </DropdownMenuLabel>
             {/* <DropdownMenuSeparator /> */}
             <DropdownMenuGroup>
-              {
-                /* <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Sparkles />
                 Upgrade to Pro
-              </DropdownMenuItem> */
-              }
+              </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -127,12 +125,10 @@ export function NavUser() {
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              {
-                /* <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <CreditCard />
                 Billing
-              </DropdownMenuItem> */
-              }
+              </DropdownMenuItem> */}
               <DropdownMenuItem>
                 <Bell />
                 Notifications

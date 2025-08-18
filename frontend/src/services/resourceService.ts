@@ -58,7 +58,7 @@ export const resourceService = {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error("Errore caricamento risorse");
+  if (!res.ok) throw new Error("Error loading resources");
     const data = await res.json();
     return Array.isArray(data) ? data.map(mapResourceFields) : [];
   },
@@ -87,7 +87,7 @@ export const resourceService = {
       },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Errore creazione risorsa");
+  if (!res.ok) throw new Error("Error creating resource");
     // The create-resource function responds with 202, does not return the resource immediately
     return {
       ...data,
@@ -109,7 +109,7 @@ export const resourceService = {
         body: JSON.stringify(data),
       },
     );
-    if (!res.ok) throw new Error("Errore aggiornamento risorsa");
+  if (!res.ok) throw new Error("Error updating resource");
     const updated = await res.json();
     return mapResourceFields(updated);
   },
@@ -123,6 +123,6 @@ export const resourceService = {
         headers: { Authorization: `Bearer ${token}` },
       },
     );
-    if (!res.ok) throw new Error("Errore eliminazione risorsa");
+  if (!res.ok) throw new Error("Error deleting resource");
   },
 };
