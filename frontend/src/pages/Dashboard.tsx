@@ -23,6 +23,7 @@ import {
 
 import { resourceService } from "@/services/resourceService";
 import { useToast } from "@/hooks/use-toast";
+import { useJobNotifications } from "@/hooks/use-job-notifications";
 import { createClient } from "@supabase/supabase-js";
 import type { Resource, CreateResourceRequest } from "@/types/resource";
 
@@ -43,6 +44,12 @@ export default function Dashboard() {
     selectedTags: [],
   });
   const [user, setUser] = useState<any>(null);
+
+  // Initialize job notifications
+  useJobNotifications({
+    showToasts: true,
+    userId: user?.id,
+  });
 
   // Load resources and setup realtime subscription
   useEffect(() => {
@@ -191,17 +198,28 @@ export default function Dashboard() {
   const handleAddResource = async (data: CreateResourceRequest) => {
     if (!user) return;
     setIsAddingResource(true);
-    toast({
-      title: "Processing resource...",
-      description:
-        "Your resource is being processed. It will appear automatically in the dashboard when ready.",
-      duration: 6000,
-      variant: "default",
-    });
+
     try {
+      // Job creation now delegated entirely to n8n (avoid duplicate jobs)
+      toast({
+        title: "Processing started!",
+        description:
+          "Workflow started. You will receive notifications during processing.",
+        duration: 6000,
+        variant: "default",
+      });
+
+      // Start the resource creation process
       await resourceService.createResource({
         ...data,
         user_id: user.id,
+      });
+    } catch (error) {
+      console.error("Error starting resource processing:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start processing. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsAddingResource(false);
