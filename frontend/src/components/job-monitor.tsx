@@ -56,11 +56,11 @@ const JobStatusBadge = ({ status }: { status: Job["status"] }) => {
   } as const;
 
   const labels = {
-    pending: "In Attesa",
-    running: "In Esecuzione",
-    completed: "Completato",
-    failed: "Fallito",
-    cancelled: "Annullato",
+    pending: "Pending",
+    running: "Running",
+    completed: "Completed",
+    failed: "Failed",
+    cancelled: "Cancelled",
   };
 
   return (
@@ -199,7 +199,7 @@ const JobCard = ({
                 </div>
                 <Progress value={progress.percentage} className="h-2" />
                 <div className="text-xs text-muted-foreground text-center">
-                  {progress.percentage}% completato
+                  {progress.percentage}% completed
                 </div>
               </div>
             )}
@@ -218,7 +218,7 @@ const JobCard = ({
             )}
             {job.completed_at && (
               <div>
-                <span className="text-muted-foreground">Completato:</span>
+                <span className="text-muted-foreground">Completed:</span>
                 <p className="font-medium">{formatDate(job.completed_at)}</p>
               </div>
             )}

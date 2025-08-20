@@ -239,14 +239,3 @@ Deno.serve(async (req) => {
   }
 })
 
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/create-job' \
-    --header 'Authorization: Bearer [SERVICE_ROLE_KEY]' \
-    --header 'Content-Type: application/json' \
-    --data '{"workflow_name":"test","user_id":"123","steps":[{"step_name":"test","step_type":"test","step_order":1}]}'
-
-*/

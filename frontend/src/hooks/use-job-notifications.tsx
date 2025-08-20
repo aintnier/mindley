@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { JobService } from "@/services/jobService";
@@ -16,8 +16,9 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastStatusNotifiedRef = useRef<Record<string, Job["status"]>>({});
+  const lastStepNotifiedRef = useRef<Set<string>>(new Set());
 
-  // Load initial jobs
   const loadJobs = useCallback(async () => {
     if (!userId) return;
 
@@ -33,19 +34,16 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
     }
   }, [userId]);
 
-  // Get running/pending jobs
   const activeJobs = jobs.filter(
     (job) => job.status === "running" || job.status === "pending"
   );
 
-  // Get completed jobs from today
   const recentJobs = jobs.filter((job) => {
     const today = new Date().toDateString();
     const jobDate = new Date(job.created_at).toDateString();
     return jobDate === today;
   });
 
-  // Show toast notification
   const showNotification = useCallback(
     (notification: JobNotification) => {
       if (!showToasts) return;
@@ -61,33 +59,50 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
         }
       };
 
-      const getToastTitle = (type: JobNotification["type"]) => {
-        switch (type) {
+      const getToastTitle = (notification: JobNotification) => {
+        switch (notification.type) {
           case "job_created":
-            return "Workflow Started";
-          case "job_updated":
-            return "Workflow Running";
-          case "step_updated":
-            return "Step Completed";
-          case "job_completed":
-            return "Workflow Completed";
+            return `Workflow started`;
+          case "step_updated": {
+            if (notification.step?.status === "running")
+              return `Step: ${notification.step.step_name}`;
+            if (notification.step?.status === "completed")
+              return `Step completed: ${notification.step.step_name}`;
+            if (notification.step?.status === "failed")
+              return `Step failed: ${notification.step.step_name}`;
+            return `Step: ${notification.step?.step_name ?? ""}`;
+          }
           case "job_failed":
-            return "Workflow Failed";
+            return "Workflow failed";
           default:
-            return "Workflow Notification";
+            return "Notification";
         }
       };
 
+      const desc =
+        notification.message && notification.message.trim().length > 0
+          ? notification.message
+          : undefined;
+      console.log("[JobNotifications] Trigger toast:", {
+        type: notification.type,
+        title: getToastTitle(notification),
+        message: notification.message,
+      });
+
       toast({
-        title: getToastTitle(notification.type),
-        description: notification.message,
+        title: getToastTitle(notification),
+        description: desc,
         variant: getToastVariant(notification.type),
+        duration:
+          notification.type === "step_updated" &&
+          notification.step?.status === "running"
+            ? 15000
+            : 12000,
       });
     },
     [showToasts, toast]
   );
 
-  // Update local jobs state
   const updateLocalJob = useCallback((updatedJob: Job) => {
     setJobs((prevJobs) => {
       const existingIndex = prevJobs.findIndex(
@@ -103,7 +118,6 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
     });
   }, []);
 
-  // Setup realtime subscriptions
   useEffect(() => {
     if (!userId) return;
 
@@ -111,7 +125,10 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
     let stepsChannel: RealtimeChannel;
 
     const setupSubscriptions = async () => {
-      // Subscribe to jobs changes
+      console.log(
+        `[JobNotifications] Setting up subscriptions for user: ${userId}`
+      );
+
       jobsChannel = supabase
         .channel("jobs_changes")
         .on(
@@ -123,28 +140,36 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
             filter: `user_id=eq.${userId}`,
           },
           (payload) => {
+            console.log(
+              "[JobNotifications] Jobs table change received:",
+              payload
+            );
             const job = payload.new as Job;
             const oldJob = payload.old as Job;
 
             if (payload.eventType === "INSERT") {
+              console.log(
+                `[JobNotifications] New job created: ${job.workflow_name} for user ${job.user_id}`
+              );
               updateLocalJob(job);
               showNotification({
                 type: "job_created",
                 job,
-                message: `Workflow "${job.workflow_name}" started.`,
+                message: `Workflow "${job.workflow_name}" started (status: ${job.status}).`,
               });
+              lastStatusNotifiedRef.current[job.id] = job.status;
             } else if (payload.eventType === "UPDATE") {
+              console.log(
+                `[JobNotifications] Job updated: ${job.workflow_name} status changed from ${oldJob?.status} to ${job.status}`
+              );
               updateLocalJob(job);
 
-              // Notify on status changes
-              if (oldJob?.status !== job.status) {
-                if (job.status === "completed") {
-                  showNotification({
-                    type: "job_completed",
-                    job,
-                    message: `Workflow "${job.workflow_name}" completed successfully.`,
-                  });
-                } else if (job.status === "failed") {
+              const alreadyNotifiedStatus =
+                lastStatusNotifiedRef.current[job.id] === job.status;
+              const statusActuallyChanged = oldJob?.status !== job.status;
+
+              if (!alreadyNotifiedStatus || statusActuallyChanged) {
+                if (job.status === "failed") {
                   showNotification({
                     type: "job_failed",
                     job,
@@ -152,20 +177,20 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
                       job.error_message ||
                       `Workflow "${job.workflow_name}" failed`,
                   });
-                } else if (job.status === "running") {
-                  showNotification({
-                    type: "job_updated",
-                    job,
-                    message: `Workflow "${job.workflow_name}" running...`,
-                  });
                 }
+                lastStatusNotifiedRef.current[job.id] = job.status;
               }
             }
           }
         )
-        .subscribe();
+        .subscribe((status, err) => {
+          console.log(
+            "[JobNotifications] Jobs subscription status:",
+            status,
+            err
+          );
+        });
 
-      // Subscribe to job steps changes for more granular notifications
       stepsChannel = supabase
         .channel("job_steps_changes")
         .on(
@@ -176,52 +201,98 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
             table: "job_steps",
           },
           async (payload) => {
+            console.log(
+              "[JobNotifications] Job step change received:",
+              payload
+            );
             const step = payload.new as JobStep;
             const oldStep = payload.old as JobStep;
 
-            // Only notify on status changes to completed
-            if (
-              oldStep?.status !== step.status &&
-              step.status === "completed"
-            ) {
+            const statusChanged = oldStep?.status !== step.status;
+            const isInteresting =
+              step.status === "running" ||
+              step.status === "completed" ||
+              step.status === "failed";
+            if (statusChanged && isInteresting) {
               try {
-                // Get the job to show proper notification
                 const jobWithSteps = await JobService.getJobWithSteps(
                   step.job_id
                 );
+
                 if (jobWithSteps && jobWithSteps.user_id === userId) {
-                  // Calculate progress
-                  const total = jobWithSteps.steps.length;
-                  const completedSteps = jobWithSteps.steps.filter(
-                    (s) => s.status === "completed" || s.status === "skipped"
+                  const stepsArr =
+                    jobWithSteps.steps || (jobWithSteps as any).job_steps || [];
+                  const total = stepsArr.length;
+                  const completedSteps = stepsArr.filter(
+                    (s: any) =>
+                      s.status === "completed" || s.status === "skipped"
                   ).length;
-                  // Determine next running / pending step name
-                  const nextStep = jobWithSteps.steps.find(
-                    (s) => s.status === "running" || s.status === "pending"
+
+                  const nextStep = stepsArr.find(
+                    (s: any) => s.status === "running" || s.status === "pending"
                   );
-                  const percentage =
-                    total > 0 ? Math.round((completedSteps / total) * 100) : 0;
-                  const baseMsg = `Step "${step.step_name}" completed (${completedSteps}/${total} - ${percentage}%).`;
-                  const nextMsg = nextStep
-                    ? ` Currently running: "${nextStep.step_name}".`
-                    : "";
-                  showNotification({
-                    type: "step_updated",
-                    job: jobWithSteps,
-                    step,
-                    message: baseMsg + nextMsg,
-                  });
+
+                  const isLastStepJustCompleted =
+                    step.status === "completed" && completedSteps === total;
+                  let description = "";
+                  if (step.status === "running") {
+                    description = "Running...";
+                  } else if (step.status === "failed") {
+                    description = "Failed.";
+                  } else if (
+                    step.status === "completed" &&
+                    !isLastStepJustCompleted &&
+                    nextStep
+                  ) {
+                    description = `Currently running step: ${nextStep.step_name}`;
+                  } else if (step.status === "completed") {
+                    description = "";
+                  }
+
+                  console.log(
+                    `[JobNotifications] Showing step notification for user ${userId}:`,
+                    description || "(no description)"
+                  );
+
+                  const stepKey = `${step.job_id}:${step.id}:${step.status}`;
+                  if (!lastStepNotifiedRef.current.has(stepKey)) {
+                    if (
+                      !(isLastStepJustCompleted && step.status === "completed")
+                    ) {
+                      showNotification({
+                        type: "step_updated",
+                        job: jobWithSteps,
+                        step,
+                        message: description,
+                      });
+                    }
+                    lastStepNotifiedRef.current.add(stepKey);
+                  } else {
+                    console.log(
+                      `[JobNotifications] Duplicate step toast suppressed for ${stepKey}`
+                    );
+                  }
+                } else {
+                  console.log(
+                    `[JobNotifications] Ignoring step update for job ${step.job_id} (not owned by user ${userId})`
+                  );
                 }
               } catch (error) {
                 console.error(
-                  "Error fetching job for step notification:",
+                  "[JobNotifications] Error fetching job for step notification:",
                   error
                 );
               }
             }
           }
         )
-        .subscribe();
+        .subscribe((status, err) => {
+          console.log(
+            "[JobNotifications] Job steps subscription status:",
+            status,
+            err
+          );
+        });
     };
 
     setupSubscriptions();
@@ -236,12 +307,10 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
     };
   }, [userId, updateLocalJob, showNotification]);
 
-  // Load jobs on mount
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
 
-  // Helper functions
   const getJobProgress = useCallback(
     async (
       jobId: string

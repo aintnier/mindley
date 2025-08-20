@@ -92,8 +92,13 @@ export class JobService {
     if (error) {
       throw new Error(`Failed to fetch job: ${error.message}`);
     }
-
-    return data;
+    if (!data) return null;
+    // Normalize shape: edge function returns job_steps for historical reasons; map to steps expected by frontend types
+    const normalized: any = { ...data };
+    if (!normalized.steps && Array.isArray(normalized.job_steps)) {
+      normalized.steps = normalized.job_steps;
+    }
+    return normalized as JobWithSteps;
   }
 
   /**
