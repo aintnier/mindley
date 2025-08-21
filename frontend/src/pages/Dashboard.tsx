@@ -34,6 +34,20 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function Dashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const getToastVariant = (type: string) => {
+    switch (type) {
+      case "job_completed":
+        return "default" as const;
+      case "job_failed":
+        return "destructive" as const;
+      case "step_updated":
+        return "default" as const;
+      case "resource_ready":
+        return "success" as const;
+      default:
+        return "default" as const;
+    }
+  };
   const [resources, setResources] = useState<Resource[]>([]);
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -94,7 +108,7 @@ export default function Dashboard() {
                   description:
                     "A new resource has been processed and is now available in your dashboard.",
                   duration: 6000,
-                  variant: "default",
+                  variant: getToastVariant("resource_ready"),
                 });
               }
             }
@@ -172,8 +186,8 @@ export default function Dashboard() {
 
       switch (filters.sortBy) {
         case "date":
-          aValue = new Date(a.published_date ?? "");
-          bValue = new Date(b.published_date ?? "");
+          aValue = new Date(a.processed_date ?? "");
+          bValue = new Date(b.processed_date ?? "");
           break;
         case "title":
           aValue = a.title.toLowerCase();

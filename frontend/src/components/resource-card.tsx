@@ -1,4 +1,5 @@
 import { Calendar, ExternalLink, FileText, User, Youtube } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,31 @@ interface ResourceCardProps {
 }
 
 export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
+  const tagsContainerRef = useRef<HTMLDivElement | null>(null);
+  const tagRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const [forceNewLine, setForceNewLine] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const refs = tagRefs.current;
+      if (!refs[0] || !refs[2]) {
+        setForceNewLine(false);
+        return;
+      }
+      const sameLine = refs[0].offsetTop === refs[2].offsetTop;
+      setForceNewLine(sameLine);
+    };
+
+    check();
+
+    const ro = new ResizeObserver(check);
+    if (tagsContainerRef.current) ro.observe(tagsContainerRef.current);
+    window.addEventListener("resize", check);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", check);
+    };
+  }, [resource.tags]);
   const getContentTypeIcon = () => {
     return resource.content_type === "youtube" ? (
       <Youtube className="h-5 w-5 text-red-500" />
@@ -135,26 +161,39 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-1 mt-3">
-          {resource.tags.slice(0, 3).map((tag, index) => (
-            <Badge
-              key={index}
-              variant="secondary"
-              className={`text-xs ${getTagColor(
-                tag
-              )} cursor-default pointer-events-none`}
-            >
-              {tag}
-            </Badge>
-          ))}
-          {resource.tags.length > 3 && (
-            <Badge
-              variant="outline"
-              className="text-xs cursor-default pointer-events-none"
-            >
-              +{resource.tags.length - 3}
-            </Badge>
-          )}
+        <div className="mt-3">
+          <div ref={tagsContainerRef} className="flex flex-wrap gap-1">
+            {resource.tags.slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                ref={(el) => {
+                  tagRefs.current[index] = el;
+                }}
+                className="inline-block"
+              >
+                <Badge
+                  variant="secondary"
+                  className={`text-xs ${getTagColor(
+                    tag
+                  )} cursor-default pointer-events-none`}
+                >
+                  {tag}
+                </Badge>
+              </span>
+            ))}
+
+            {resource.tags.length > 3 && (
+              <>
+                {forceNewLine && <div className="w-full" />}
+                <Badge
+                  variant="outline"
+                  className="text-xs cursor-default pointer-events-none"
+                >
+                  +{resource.tags.length - 3}
+                </Badge>
+              </>
+            )}
+          </div>
         </div>
       </CardContent>
 

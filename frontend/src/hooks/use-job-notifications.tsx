@@ -54,6 +54,9 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
             return "default";
           case "job_failed":
             return "destructive";
+          case "step_updated":
+            // If the step itself failed, show destructive styling
+            return "default";
           default:
             return "default";
         }
@@ -89,10 +92,22 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
         message: notification.message,
       });
 
+      // Determine variant
+      let variant = getToastVariant(notification.type) as
+        | "default"
+        | "destructive"
+        | undefined;
+      if (
+        notification.type === "step_updated" &&
+        notification.step?.status === "failed"
+      ) {
+        variant = "destructive";
+      }
+
       toast({
         title: getToastTitle(notification),
         description: desc,
-        variant: getToastVariant(notification.type),
+        variant,
         duration:
           notification.type === "step_updated" &&
           notification.step?.status === "running"
@@ -146,8 +161,9 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
             );
             const job = payload.new as Job;
             const oldJob = payload.old as Job;
+            const evt = (payload as any).eventType ?? (payload as any).event;
 
-            if (payload.eventType === "INSERT") {
+            if (evt === "INSERT") {
               console.log(
                 `[JobNotifications] New job created: ${job.workflow_name} for user ${job.user_id}`
               );
@@ -158,7 +174,7 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
                 message: `Workflow "${job.workflow_name}" started (status: ${job.status}).`,
               });
               lastStatusNotifiedRef.current[job.id] = job.status;
-            } else if (payload.eventType === "UPDATE") {
+            } else if (evt === "UPDATE") {
               console.log(
                 `[JobNotifications] Job updated: ${job.workflow_name} status changed from ${oldJob?.status} to ${job.status}`
               );
@@ -207,19 +223,31 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
             );
             const step = payload.new as JobStep;
             const oldStep = payload.old as JobStep;
+            const evt = (payload as any).eventType ?? (payload as any).event;
 
             const statusChanged = oldStep?.status !== step.status;
             const isInteresting =
               step.status === "running" ||
               step.status === "completed" ||
               step.status === "failed";
-            if (statusChanged && isInteresting) {
+            if (
+              statusChanged &&
+              isInteresting &&
+              (evt === "UPDATE" || evt === undefined)
+            ) {
               try {
                 const jobWithSteps = await JobService.getJobWithSteps(
                   step.job_id
                 );
 
                 if (jobWithSteps && jobWithSteps.user_id === userId) {
+                  // If the overall job already failed, skip step toasts so the job failure toast remains visible
+                  if (jobWithSteps.status === "failed") {
+                    console.log(
+                      `[JobNotifications] Skipping step toast because job ${jobWithSteps.id} already failed`
+                    );
+                    return;
+                  }
                   const stepsArr =
                     jobWithSteps.steps || (jobWithSteps as any).job_steps || [];
                   const total = stepsArr.length;
@@ -259,12 +287,20 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
                     if (
                       !(isLastStepJustCompleted && step.status === "completed")
                     ) {
-                      showNotification({
-                        type: "step_updated",
+                      // for failed steps, mark notification so it renders destructive
+                      const notif = {
+                        type: "step_updated" as const,
                         job: jobWithSteps,
                         step,
                         message: description,
-                      });
+                      };
+
+                      // If this step failed, force destructive variant when showing
+                      if (step.status === "failed") {
+                        showNotification({ ...notif, type: "step_updated" });
+                      } else {
+                        showNotification(notif);
+                      }
                     }
                     lastStepNotifiedRef.current.add(stepKey);
                   } else {

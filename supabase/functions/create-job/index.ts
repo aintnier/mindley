@@ -94,14 +94,23 @@ Deno.serve(async (req) => {
 
       // If user_id not provided or invalid UUID, but user_email is provided, resolve it
       if ((!userId || !isUuid(userId)) && requestBody.user_email) {
-        const { data: userLookup, error: userLookupError } = await supabaseClient.auth.admin.getUserByEmail(requestBody.user_email)
-        if (userLookupError || !userLookup?.user) {
+        const { data: userList, error: userLookupError } = await supabaseClient.auth.admin.listUsers()
+        if (userLookupError || !userList?.users) {
           return new Response(
             JSON.stringify({ error: 'Unable to resolve user by email' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
-        userId = userLookup.user.id
+
+        const found = userList.users.find(u => u.email === requestBody.user_email)
+        if (!found) {
+          return new Response(
+            JSON.stringify({ error: 'Unable to resolve user by email' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        userId = found.id
       }
 
       if (!userId || !isUuid(userId)) {
