@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -24,12 +24,9 @@ import {
 import { resourceService } from "@/services/resourceService";
 import { useToast } from "@/hooks/use-toast";
 import { useJobNotifications } from "@/hooks/use-job-notifications";
-import { createClient } from "@supabase/supabase-js";
 import type { Resource, CreateResourceRequest } from "@/types/resource";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Realtime logic removed: handled by hooks (useJobNotifications + future reliable hooks)
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -65,66 +62,57 @@ export default function Dashboard() {
     userId: user?.id,
   });
 
-  // Load resources and setup realtime subscription
+  // Load user & resources with polling fallback (replaces inline realtime here)
+  const previousResourceIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    let subscription: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    let interval: number | null = null;
 
-    const loadResources = () => {
-      resourceService
-        .getAllResources()
-        .then((data) => {
-          setResources(data);
-        })
-        .catch(console.error);
-    };
-
-    loadResources();
-
-    // Realtime setup with retry logic
-    const setupRealtime = async () => {
+    const fetchUser = async () => {
       try {
         const {
           data: { user: supaUser },
-        } = await supabase.auth.getUser();
-        if (!supaUser) return;
-        setUser(supaUser);
-
-        subscription = supabase
-          .channel(`resources-${supaUser.id}-${Date.now()}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "INSERT",
-              schema: "public",
-              table: "resources",
-            },
-            (payload) => {
-              console.log("[Realtime] INSERT event received:", payload);
-              // Check if the resource belongs to the current user
-              if (payload.new && payload.new.user_id === supaUser.id) {
-                loadResources();
-                toast({
-                  title: "Resource ready!",
-                  description:
-                    "A new resource has been processed and is now available in your dashboard.",
-                  duration: 6000,
-                  variant: getToastVariant("resource_ready"),
-                });
-              }
-            }
-          )
-          .subscribe((status, err) => {
-            console.log("[Realtime] Subscription status:", status, err);
-          });
-      } catch (err) {
-        console.error("[Realtime] Setup error:", err);
+        } = await import("@/lib/supabase").then((m) =>
+          m.supabase.auth.getUser()
+        );
+        if (!cancelled) setUser(supaUser || null);
+      } catch (e) {
+        /* ignore */
       }
     };
 
-    setupRealtime();
+    const loadResources = async () => {
+      try {
+        const data = await resourceService.getAllResources();
+        if (cancelled) return;
+        // detect new resources for toast
+        const currentIds = new Set(data.map((r) => r.id));
+        data.forEach((r) => {
+          if (r.id && !previousResourceIdsRef.current.has(r.id)) {
+            if (previousResourceIdsRef.current.size > 0) {
+              toast({
+                title: "Resource ready!",
+                description:
+                  "A new resource has been processed and is now available.",
+                duration: 6000,
+                variant: getToastVariant("resource_ready"),
+              });
+            }
+          }
+        });
+        previousResourceIdsRef.current = currentIds;
+        setResources(data);
+      } catch (e) {
+        console.error("Error loading resources", e);
+      }
+    };
 
+    fetchUser();
+    loadResources();
+    interval = window.setInterval(loadResources, 5000) as unknown as number;
     return () => {
-      if (subscription) supabase.removeChannel(subscription);
+      cancelled = true;
+      if (interval) window.clearInterval(interval);
     };
   }, [toast]);
 
@@ -319,7 +307,7 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-6">
+              <div className="flex flex-wrap gap-6 max-sm:justify-center">
                 {filteredResources.map((resource) => (
                   <ResourceCard
                     key={resource.id}

@@ -42,11 +42,13 @@
     --chart-4: 218.6014 82.659% 66.0784%;
     --chart-5: 207.4138 46.4% 49.0196%;
     --sidebar: 0 0% 96.0784%;
+    /* Alias for Tailwind config which expects --sidebar-background */
+    --sidebar-background: var(--sidebar);
     --sidebar-foreground: 0 0% 18.8235%;
     --sidebar-primary: 246.6207 77.5401% 63.3333%;
     --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 225 93.617% 63.1373%;
-    --sidebar-accent-foreground: 0 0% 18.8235%;
+    --sidebar-accent-foreground: 0 0% 89.8039%;
     --sidebar-border: 0 0% 90.1961%;
     --sidebar-ring: 246.6207 77.5401% 63.3333%;
     --font-sans: Poppins, ui-sans-serif, sans-serif, system-ui;
@@ -103,6 +105,8 @@
     --chart-4: 218.6014 82.659% 66.0784%;
     --chart-5: 207.4138 46.4% 49.0196%;
     --sidebar: 0 0% 9.0196%;
+    /* Alias for Tailwind config which expects --sidebar-background */
+    --sidebar-background: var(--sidebar);
     --sidebar-foreground: 0 0% 89.8039%;
     --sidebar-primary: 246.6207 77.5401% 63.3333%;
     --sidebar-primary-foreground: 0 0% 100%;

@@ -9,8 +9,8 @@ import {
   Share2,
   Trash2,
   User,
-  Youtube,
 } from "lucide-react";
+import YouTubeIcon from "@/components/icons/youtube";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -38,6 +38,15 @@ const ResourceDetail = () => {
   const [resource, setResource] = useState<Resource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ensure the page is scrolled to top when the component mounts or when the resource id changes (so it always opens at the top).
+  useEffect(() => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (err) {
+      // ignore in non-browser environments
+    }
+  }, [id]);
+
   useEffect(() => {
     // Simulate API call - in the future this will be a real API call
     const loadResource = async () => {
@@ -61,7 +70,7 @@ const ResourceDetail = () => {
 
   const getContentTypeIcon = (contentType: string) => {
     return contentType === "youtube" ? (
-      <Youtube className="h-4 w-4 text-red-500" />
+      <YouTubeIcon className="h-4 w-4 text-red-500" />
     ) : (
       <FileText className="h-4 w-4 text-blue-500" />
     );
@@ -258,21 +267,32 @@ const ResourceDetail = () => {
                   {/* Image for smaller screens */}
                   <div className="xl:hidden">
                     {resource.thumbnail_link ? (
-                      <img
-                        src={resource.thumbnail_link}
-                        alt={
+                      <a
+                        href={resource.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={
                           resource.title
-                            ? `${resource.title} thumbnail`
-                            : "Image unavailable"
+                            ? `Open ${resource.title} in new tab`
+                            : "Open resource in new tab"
                         }
-                        className="rounded-xl shadow-lg border border-border bg-muted w-full transition-all duration-300"
-                        style={{
-                          maxHeight: "300px",
-                          objectFit: "cover",
-                        }}
-                      />
+                        className="block"
+                      >
+                        <div className="w-full h-[12.32rem] bg-muted flex items-center justify-center text-center overflow-hidden rounded-xl shadow-lg border border-border transition-all duration-300">
+                          <img
+                            src={resource.thumbnail_link}
+                            alt={
+                              resource.title
+                                ? `${resource.title} thumbnail`
+                                : "Image unavailable"
+                            }
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      </a>
                     ) : (
-                      <div className="flex items-center justify-center rounded-xl border border-muted/40 bg-muted h-40 w-full">
+                      <div className="flex items-center justify-center rounded-xl border border-muted/40 bg-muted h-[12.32rem] w-full">
                         <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug">
                           {resource.title
                             ? `${resource.title} thumbnail`
@@ -436,21 +456,32 @@ const ResourceDetail = () => {
                           {/* Image - Only visible on xl screens and larger */}
                           <div className="hidden xl:flex xl:col-span-3 items-center justify-center">
                             {resource.thumbnail_link ? (
-                              <img
-                                src={resource.thumbnail_link}
-                                alt={
+                              <a
+                                href={resource.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={
                                   resource.title
-                                    ? `${resource.title} thumbnail`
-                                    : "Image unavailable"
+                                    ? `Open ${resource.title} in new tab`
+                                    : "Open resource in new tab"
                                 }
-                                className="rounded-xl shadow-lg border border-border bg-muted w-full transition-all duration-300"
-                                style={{
-                                  maxHeight: "300px",
-                                  objectFit: "cover",
-                                }}
-                              />
+                                className="block w-full"
+                              >
+                                <div className="w-full h-[12.32rem] rounded-xl shadow-lg border border-border bg-muted overflow-hidden transition-all duration-300">
+                                  <img
+                                    src={resource.thumbnail_link}
+                                    alt={
+                                      resource.title
+                                        ? `${resource.title} thumbnail`
+                                        : "Image unavailable"
+                                    }
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                </div>
+                              </a>
                             ) : (
-                              <div className="flex items-center justify-center rounded-xl border border-muted/40 bg-muted h-40 w-full">
+                              <div className="flex items-center justify-center rounded-xl border border-muted/40 bg-muted h-[12.32rem] w-full">
                                 <span className="text-[11px] text-muted-foreground px-3 text-center leading-snug">
                                   {resource.title
                                     ? `${resource.title} thumbnail`
@@ -466,7 +497,7 @@ const ResourceDetail = () => {
                   })()}
 
                   {/* Content placeholder - in real implementation this would be the processed content */}
-                  <div className="space-y-6">
+                  <div className="space-y-2">
                     <h3>Additional Information</h3>
                     <p className="text-muted-foreground">
                       Resource added on: {formatDate(resource.processed_date)}

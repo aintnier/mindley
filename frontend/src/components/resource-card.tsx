@@ -1,4 +1,5 @@
-import { Calendar, ExternalLink, FileText, User, Youtube } from "lucide-react";
+import { Calendar, ExternalLink, FileText, User } from "lucide-react";
+import YouTubeIcon from "@/components/icons/youtube";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
   }, [resource.tags]);
   const getContentTypeIcon = () => {
     return resource.content_type === "youtube" ? (
-      <Youtube className="h-5 w-5 text-red-500" />
+      <YouTubeIcon className="h-5 w-5 text-red-500" />
     ) : (
       <FileText className="h-5 w-5 text-blue-500" />
     );
