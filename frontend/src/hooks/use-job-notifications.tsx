@@ -1,0 +1,374 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { JobService } from "@/services/jobService";
+import type { Job, JobStep, JobNotification } from "@/types/job";
+import { useReliableRealtime } from "./use-reliable-realtime";
+
+export interface UseJobNotificationsOptions {
+  showToasts?: boolean;
+  userId?: string;
+}
+
+export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
+  const { showToasts = true, userId } = options;
+  const { toast } = useToast();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const lastStatusNotifiedRef = useRef<Record<string, Job["status"]>>({});
+  const lastStepNotifiedRef = useRef<Set<string>>(new Set());
+
+  const loadJobs = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      setIsLoading(true);
+      const userJobs = await JobService.getUserJobs();
+      setJobs(userJobs);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load jobs");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
+
+  const activeJobs = jobs.filter(
+    (job) => job.status === "running" || job.status === "pending"
+  );
+
+  const recentJobs = jobs.filter((job) => {
+    const today = new Date().toDateString();
+    const jobDate = new Date(job.created_at).toDateString();
+    return jobDate === today;
+  });
+
+  const showNotification = useCallback(
+    (notification: JobNotification) => {
+      if (!showToasts) return;
+
+      const getToastVariant = (type: JobNotification["type"]) => {
+        switch (type) {
+          case "job_completed":
+            return "default";
+          case "job_failed":
+            return "destructive";
+          case "step_updated":
+            // If the step itself failed, show destructive styling
+            return "default";
+          default:
+            return "default";
+        }
+      };
+
+      const getToastTitle = (notification: JobNotification) => {
+        switch (notification.type) {
+          case "job_created":
+            return `Workflow started`;
+          case "step_updated": {
+            if (notification.step?.status === "running")
+              return `Step: ${notification.step.step_name}`;
+            if (notification.step?.status === "completed")
+              return `Step completed: ${notification.step.step_name}`;
+            if (notification.step?.status === "failed")
+              return `Step failed: ${notification.step.step_name}`;
+            return `Step: ${notification.step?.step_name ?? ""}`;
+          }
+          case "job_failed":
+            return "Workflow failed";
+          default:
+            return "Notification";
+        }
+      };
+
+      const desc =
+        notification.message && notification.message.trim().length > 0
+          ? notification.message
+          : undefined;
+      console.log("[JobNotifications] Trigger toast:", {
+        type: notification.type,
+        title: getToastTitle(notification),
+        message: notification.message,
+      });
+
+      // Determine variant
+      let variant = getToastVariant(notification.type) as
+        | "default"
+        | "destructive"
+        | undefined;
+      if (
+        notification.type === "step_updated" &&
+        notification.step?.status === "failed"
+      ) {
+        variant = "destructive";
+      }
+
+      toast({
+        title: getToastTitle(notification),
+        description: desc,
+        variant,
+        duration:
+          notification.type === "step_updated" &&
+          notification.step?.status === "running"
+            ? 15000
+            : 12000,
+      });
+    },
+    [showToasts, toast]
+  );
+
+  const updateLocalJob = useCallback((updatedJob: Job) => {
+    setJobs((prevJobs) => {
+      const existingIndex = prevJobs.findIndex(
+        (job) => job.id === updatedJob.id
+      );
+      if (existingIndex >= 0) {
+        const newJobs = [...prevJobs];
+        newJobs[existingIndex] = updatedJob;
+        return newJobs;
+      } else {
+        return [updatedJob, ...prevJobs];
+      }
+    });
+  }, []);
+
+  // --- Unified event handler (realtime + polling synthetic) ---
+  const handleEvent = useCallback(
+    async (evt: { source: string; payload: any; isSynthetic: boolean }) => {
+      if (!userId) return;
+      const payload = evt.payload;
+      if (evt.source === "jobs") {
+        const job = payload.new as Job;
+        const oldJob = payload.old as Job;
+        const eventType = (payload as any).eventType ?? (payload as any).event;
+
+        if (eventType === "INSERT") {
+          updateLocalJob(job);
+          showNotification({
+            type: "job_created",
+            job,
+            message: `Workflow "${job.workflow_name}" started (status: ${job.status}).`,
+          });
+          lastStatusNotifiedRef.current[job.id] = job.status;
+        } else if (eventType === "UPDATE") {
+          updateLocalJob(job);
+          const alreadyNotifiedStatus =
+            lastStatusNotifiedRef.current[job.id] === job.status;
+          const statusActuallyChanged = oldJob?.status !== job.status;
+          if (!alreadyNotifiedStatus || statusActuallyChanged) {
+            if (job.status === "failed") {
+              showNotification({
+                type: "job_failed",
+                job,
+                message:
+                  job.error_message || `Workflow "${job.workflow_name}" failed`,
+              });
+            }
+            lastStatusNotifiedRef.current[job.id] = job.status;
+          }
+        }
+      } else if (evt.source === "job_steps") {
+        const step = payload.new as JobStep;
+        const oldStep = payload.old as JobStep;
+        const eventType = (payload as any).eventType ?? (payload as any).event;
+        const statusChanged = oldStep?.status !== step.status;
+        const isInteresting = ["running", "completed", "failed"].includes(
+          step.status
+        );
+        if (
+          statusChanged &&
+          isInteresting &&
+          (eventType === "UPDATE" || eventType === undefined)
+        ) {
+          try {
+            const jobWithSteps = await JobService.getJobWithSteps(step.job_id);
+            if (jobWithSteps && jobWithSteps.user_id === userId) {
+              if (jobWithSteps.status === "failed") return; // skip if job already failed
+              const stepsArr =
+                jobWithSteps.steps || (jobWithSteps as any).job_steps || [];
+              const total = stepsArr.length;
+              const completedSteps = stepsArr.filter((s: any) =>
+                ["completed", "skipped"].includes(s.status)
+              ).length;
+              const nextStep = stepsArr.find((s: any) =>
+                ["running", "pending"].includes(s.status)
+              );
+              const isLastStepJustCompleted =
+                step.status === "completed" && completedSteps === total;
+              let description = "";
+              if (step.status === "running") description = "Running...";
+              else if (step.status === "failed") description = "Failed.";
+              else if (
+                step.status === "completed" &&
+                !isLastStepJustCompleted &&
+                nextStep
+              )
+                description = `Currently running step: ${nextStep.step_name}`;
+              const stepKey = `${step.job_id}:${step.id}:${step.status}`;
+              if (!lastStepNotifiedRef.current.has(stepKey)) {
+                if (!(isLastStepJustCompleted && step.status === "completed")) {
+                  const notif = {
+                    type: "step_updated" as const,
+                    job: jobWithSteps,
+                    step,
+                    message: description,
+                  };
+                  showNotification(notif);
+                }
+                lastStepNotifiedRef.current.add(stepKey);
+              }
+            }
+          } catch (e) {
+            console.error("[JobNotifications] Error handling step event", e);
+          }
+        }
+      }
+    },
+    [userId, updateLocalJob, showNotification]
+  );
+
+  // Poller builds synthetic UPDATE-like events by diffing recent state
+  const previousJobsRef = useRef<Record<string, Job>>({});
+  const previousStepsRef = useRef<Record<string, JobStep>>({});
+  const poller = useCallback(async () => {
+    if (!userId) return [] as any[];
+    try {
+      const jobs = await JobService.getUserJobs();
+      const events: any[] = [];
+      jobs.forEach((job: any) => {
+        const prev = previousJobsRef.current[job.id];
+        if (!prev) {
+          events.push({
+            source: "jobs",
+            payload: { new: job, old: {}, event: "INSERT" },
+          });
+        } else if (prev.status !== job.status) {
+          events.push({
+            source: "jobs",
+            payload: { new: job, old: prev, event: "UPDATE" },
+          });
+        }
+        previousJobsRef.current[job.id] = job;
+        // Steps
+        (job.steps || []).forEach((step: JobStep) => {
+          const stepKey = step.id;
+          const prevStep = previousStepsRef.current[stepKey];
+          if (!prevStep) {
+            // treat as running update when not pending (skip initial pending noise)
+            if (["running", "completed", "failed"].includes(step.status)) {
+              events.push({
+                source: "job_steps",
+                payload: { new: step, old: {}, event: "UPDATE" },
+              });
+            }
+          } else if (prevStep.status !== step.status) {
+            events.push({
+              source: "job_steps",
+              payload: { new: step, old: prevStep, event: "UPDATE" },
+            });
+          }
+          previousStepsRef.current[stepKey] = step;
+        });
+      });
+      return events;
+    } catch (e) {
+      console.warn("[JobNotifications] Poller error", e);
+      return [];
+    }
+  }, [userId]);
+
+  useReliableRealtime({
+    sources: userId
+      ? [
+          {
+            key: "jobs",
+            filter: {
+              event: "*",
+              schema: "public",
+              table: "jobs",
+              filter: `user_id=eq.${userId}`,
+            },
+          },
+          {
+            key: "job_steps",
+            filter: { event: "UPDATE", schema: "public", table: "job_steps" },
+          },
+        ]
+      : [],
+    poller, // fallback
+    onEvent: handleEvent,
+  });
+
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
+
+  const getJobProgress = useCallback(
+    async (
+      jobId: string
+    ): Promise<{ completed: number; total: number; percentage: number }> => {
+      try {
+        const jobWithSteps = await JobService.getJobWithSteps(jobId);
+        if (!jobWithSteps) return { completed: 0, total: 0, percentage: 0 };
+
+        const completedSteps = jobWithSteps.steps.filter(
+          (step) => step.status === "completed" || step.status === "skipped"
+        ).length;
+        const totalSteps = jobWithSteps.steps.length;
+        const percentage =
+          totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+        return { completed: completedSteps, total: totalSteps, percentage };
+      } catch (error) {
+        console.error("Error calculating job progress:", error);
+        return { completed: 0, total: 0, percentage: 0 };
+      }
+    },
+    []
+  );
+
+  const createJob = useCallback(
+    async (request: Parameters<typeof JobService.createJob>[0]) => {
+      if (!userId) throw new Error("User not authenticated");
+
+      try {
+        const jobWithSteps = await JobService.createJob(request);
+        await loadJobs(); // Refresh jobs list
+        return jobWithSteps.id;
+      } catch (error) {
+        setError(
+          error instanceof Error ? error.message : "Failed to create job"
+        );
+        throw error;
+      }
+    },
+    [userId, loadJobs]
+  );
+
+  const cancelJob = useCallback(
+    async (jobId: string) => {
+      try {
+        await JobService.cancelJob(jobId);
+        await loadJobs(); // Refresh jobs list
+      } catch (error) {
+        setError(
+          error instanceof Error ? error.message : "Failed to cancel job"
+        );
+        throw error;
+      }
+    },
+    [loadJobs]
+  );
+
+  return {
+    jobs,
+    activeJobs,
+    recentJobs,
+    isLoading,
+    error,
+    loadJobs,
+    createJob,
+    cancelJob,
+    getJobProgress,
+  };
+}

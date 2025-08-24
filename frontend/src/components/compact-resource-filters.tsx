@@ -55,7 +55,7 @@ export function CompactResourceFilters({
       )}
     >
       {/* Results header with controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4  ">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Your Resources</h2>
           <p className="text-muted-foreground">
