@@ -9,10 +9,32 @@ import {
   Share2,
   Trash2,
   User,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import YouTubeIcon from "@/components/icons/youtube";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
 import {
@@ -35,8 +57,14 @@ import { resourceService } from "@/services/resourceService";
 const ResourceDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [resource, setResource] = useState<Resource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [deleteError, setDeleteError] = useState<string>("");
 
   // Ensure the page is scrolled to top when the component mounts or when the resource id changes (so it always opens at the top).
   useEffect(() => {
@@ -115,29 +143,55 @@ const ResourceDetail = () => {
       } catch {
         // Fallback to copying URL to clipboard
         navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link copied",
+          description: "Resource link copied to clipboard",
+        });
       }
     } else {
       // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied",
+        description: "Resource link copied to clipboard",
+      });
     }
   };
 
+  const handleDeleteConfirm = () => {
+    setShowDeleteDialog(true);
+  };
+
   const handleDeleteResource = async () => {
-    if (
-      resource &&
-      window.confirm(
-        `Are you sure you want to delete "${resource.title}"? This action cannot be undone.`
-      )
-    ) {
-      try {
-        await resourceService.deleteResource(resource.id);
-        alert("Resource deleted successfully.");
-        navigate("/dashboard");
-      } catch (err) {
-        console.error("Error deleting resource:", err);
-        alert("Failed to delete resource. Please try again.");
-      }
+    if (!resource) return;
+
+    setIsDeleting(true);
+    setShowDeleteDialog(false);
+
+    try {
+      await resourceService.deleteResource(resource.id);
+      setShowSuccessDialog(true);
+    } catch (err) {
+      console.error("Error deleting resource:", err);
+      setDeleteError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred while deleting the resource"
+      );
+      setShowErrorDialog(true);
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleSuccessDialogClose = () => {
+    setShowSuccessDialog(false);
+    navigate("/dashboard");
+  };
+
+  const handleErrorDialogClose = () => {
+    setShowErrorDialog(false);
+    setDeleteError("");
   };
 
   if (isLoading) {
@@ -390,14 +444,72 @@ const ResourceDetail = () => {
                           <Share2 className="ml-2 size-3" />
                         </Button>
                       </div>
-                      <Button
-                        className="w-full justify-between"
-                        variant="destructive"
-                        onClick={handleDeleteResource}
+
+                      <AlertDialog
+                        open={showDeleteDialog}
+                        onOpenChange={setShowDeleteDialog}
                       >
-                        Delete Resource
-                        <Trash2 className="ml-2 size-4" />
-                      </Button>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            className="w-full justify-between"
+                            variant="destructive"
+                            disabled={isDeleting}
+                            onClick={handleDeleteConfirm}
+                          >
+                            <span>
+                              {isDeleting ? "Deleting..." : "Delete Resource"}
+                            </span>
+                            <Trash2 className="ml-2 size-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-lg">
+                          <AlertDialogHeader className="text-center space-y-4">
+                            {/* Icon */}
+                            <div className="flex justify-center">
+                              <div className="h-10 w-10 flex items-center justify-center rounded-full border border-muted/70">
+                                <AlertCircle className="h-5 w-5 text-foreground" />
+                              </div>
+                            </div>
+
+                            {/* Title */}
+                            <AlertDialogTitle className="text-center text-lg font-semibold">
+                              Confirm Deletion
+                            </AlertDialogTitle>
+
+                            {/* Description */}
+                            <AlertDialogDescription className="text-center text-muted-foreground leading-relaxed ">
+                              Are you sure you want to delete{" "}
+                              <span className="text-foreground font-medium">
+                                "{resource.title}"
+                              </span>
+                              ? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+
+                          <AlertDialogFooter className="grid grid-cols-2 gap-3 mt-4 items-end">
+                            <AlertDialogCancel
+                              disabled={isDeleting}
+                              className="w-full hover:bg-muted/50 hover:text-muted-foreground"
+                            >
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteResource}
+                              disabled={isDeleting}
+                              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                            >
+                              {isDeleting ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                                  Deleting...
+                                </>
+                              ) : (
+                                "Delete Resource"
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </aside>
@@ -508,6 +620,82 @@ const ResourceDetail = () => {
             </div>
           </section>
         </div>
+
+        {/* Success Dialog */}
+        <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-lg">
+            <DialogHeader className="text-center space-y-4">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="h-10 w-10 flex items-center justify-center rounded-full border border-muted/70">
+                  <CheckCircle className="h-5 w-5 text-foreground" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <DialogTitle className="text-center text-lg font-semibold">
+                Resource Deleted Successfully
+              </DialogTitle>
+
+              {/* Description */}
+              <DialogDescription className="text-center text-muted-foreground leading-relaxed">
+                The resource{" "}
+                <span className="text-foreground font-medium">
+                  "{resource?.title}"
+                </span>{" "}
+                has been successfully removed from your collection.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className="mt-6">
+              <Button onClick={handleSuccessDialogClose} className="w-full">
+                Return to Dashboard
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Error Dialog */}
+        <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+          <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-lg">
+            <DialogHeader className="text-center space-y-4">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="h-10 w-10 flex items-center justify-center rounded-full border border-muted/70">
+                  <AlertCircle className="h-5 w-5 text-foreground" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <DialogTitle className="text-center text-lg font-semibold">
+                Delete Failed
+              </DialogTitle>
+
+              {/* Description */}
+              <DialogDescription className="text-center text-muted-foreground leading-relaxed">
+                Failed to delete the resource. Please try again.
+                {deleteError && (
+                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-sm text-left">
+                    <strong>Error:</strong> {deleteError}
+                  </div>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className="grid grid-cols-2 gap-3 mt-4">
+              <Button
+                variant="outline"
+                onClick={handleErrorDialogClose}
+                className="w-full"
+              >
+                Close
+              </Button>
+              <Button onClick={handleDeleteConfirm} className="w-full">
+                Try Again
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SidebarInset>
     </SidebarProvider>
   );
