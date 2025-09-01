@@ -43,7 +43,6 @@ export function AddResourceForm({
 
     // Reset form
     setUrl("");
-    setLanguage("english");
   };
 
   const isValidUrl = (url: string) => {

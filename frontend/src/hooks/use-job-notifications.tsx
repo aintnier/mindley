@@ -44,7 +44,11 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
   });
 
   const showNotification = useCallback(
-    (notification: JobNotification) => {
+    (
+      notification: JobNotification & {
+        customVariant?: "default" | "destructive" | "success" | "primary";
+      }
+    ) => {
       if (!showToasts) return;
 
       const getToastVariant = (type: JobNotification["type"]) => {
@@ -61,7 +65,15 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
         }
       };
 
-      const getToastTitle = (notification: JobNotification) => {
+      const getToastTitle = (
+        notification: JobNotification & {
+          customVariant?: "default" | "destructive" | "success" | "primary";
+        }
+      ) => {
+        if (notification.customVariant === "primary") {
+          return "Resource Already Available";
+        }
+
         switch (notification.type) {
           case "job_created":
             return `Workflow started`;
@@ -92,11 +104,16 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
       });
 
       // Determine variant
-      let variant = getToastVariant(notification.type) as
-        | "default"
-        | "destructive"
-        | undefined;
+      let variant =
+        notification.customVariant ||
+        (getToastVariant(notification.type) as
+          | "default"
+          | "destructive"
+          | "success"
+          | "primary"
+          | undefined);
       if (
+        !notification.customVariant &&
         notification.type === "step_updated" &&
         notification.step?.status === "failed"
       ) {
@@ -190,28 +207,109 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
               const completedSteps = stepsArr.filter((s: any) =>
                 ["completed", "skipped"].includes(s.status)
               ).length;
-              const nextStep = stepsArr.find((s: any) =>
-                ["running", "pending"].includes(s.status)
-              );
+
+              const nextStep = stepsArr
+                .filter((s: any) => ["running", "pending"].includes(s.status))
+                .sort((a: any, b: any) => a.step_order - b.step_order)[0];
+
               const isLastStepJustCompleted =
                 step.status === "completed" && completedSteps === total;
+
+              // Handle special cases for duplicate handling
+              const isSameUserDuplicate =
+                step.step_name === "Handle Duplicates: Same User" &&
+                step.status === "completed";
+              const isDifferentUserDuplicate =
+                step.step_name === "Handle Duplicates: Different User" &&
+                step.status === "completed";
+              const isDifferentUserFailed =
+                step.step_name.includes("Different User") &&
+                step.status === "failed";
+
+              console.log("[JobNotifications] Step analysis:", {
+                stepName: step.step_name,
+                status: step.status,
+                isSameUserDuplicate,
+                isDifferentUserDuplicate,
+                isDifferentUserFailed,
+                metadata: step.metadata,
+                isLastStepJustCompleted,
+              });
+
               let description = "";
-              if (step.status === "running") description = "Running...";
-              else if (step.status === "failed") description = "Failed.";
-              else if (
-                step.status === "completed" &&
-                !isLastStepJustCompleted &&
-                nextStep
-              )
-                description = `Currently running step: ${nextStep.step_name}`;
+              let shouldShowToast = true;
+              let customVariant:
+                | "default"
+                | "destructive"
+                | "success"
+                | "primary"
+                | undefined = undefined;
+
+              if (step.status === "running") {
+                description = "Running...";
+              } else if (step.status === "failed") {
+                if (isDifferentUserFailed) {
+                  // Handle failure case for Different User duplicate handling
+                  description = "Failed to process resource";
+                  customVariant = "destructive";
+                } else {
+                  description = "Failed.";
+                }
+              } else if (isSameUserDuplicate) {
+                // Resource already in user's collection - show info toast and redirect
+                const resourceId = step.metadata?.reference_id;
+                const resourceTitle = step.metadata?.reference_title;
+
+                if (resourceId && resourceTitle) {
+                  description = `Resource already in your collection: ${resourceTitle}`;
+                  customVariant = "primary";
+
+                  // Redirect to resource detail page
+                  setTimeout(() => {
+                    window.location.href = `/resource/${resourceId}`;
+                  }, 2000);
+                } else {
+                  description = "Resource already in your collection";
+                  customVariant = "primary";
+                }
+              } else if (isDifferentUserDuplicate) {
+                // Resource copied from another user - suppress success toast
+                shouldShowToast = false; // Success job step toast suppressed
+              } else if (step.status === "completed") {
+                if (isLastStepJustCompleted) {
+                  // Regular workflow completion
+                  description =
+                    "Resource successfully added to your collection";
+                  customVariant = "success";
+
+                  // Reload page after short delay
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 2000);
+                } else if (nextStep) {
+                  description = `Currently running step: ${nextStep.step_name}`;
+                }
+              }
+
               const stepKey = `${step.job_id}:${step.id}:${step.status}`;
-              if (!lastStepNotifiedRef.current.has(stepKey)) {
-                if (!(isLastStepJustCompleted && step.status === "completed")) {
+              if (
+                !lastStepNotifiedRef.current.has(stepKey) &&
+                shouldShowToast
+              ) {
+                if (
+                  !(
+                    isLastStepJustCompleted &&
+                    step.status === "completed" &&
+                    !isSameUserDuplicate &&
+                    !isDifferentUserDuplicate
+                  )
+                ) {
                   const notif = {
                     type: "step_updated" as const,
                     job: jobWithSteps,
                     step,
                     message: description,
+                    customVariant,
                   };
                   showNotification(notif);
                 }

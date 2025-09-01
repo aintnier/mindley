@@ -115,7 +115,7 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
       </div>
 
       <CardHeader className="space-y-2 p-4 pb-2">
-        <div className="flex items-start justify-between">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getContentTypeIcon()}
             <span className="text-xs font-medium text-muted-foreground uppercase">

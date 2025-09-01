@@ -26,8 +26,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useJobNotifications } from "@/hooks/use-job-notifications";
 import type { Resource, CreateResourceRequest } from "@/types/resource";
 
-// Realtime logic removed: handled by hooks (useJobNotifications + future reliable hooks)
-
 export default function Dashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
