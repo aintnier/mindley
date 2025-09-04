@@ -29,7 +29,7 @@ export function AddResourceForm({
 }: AddResourceFormProps) {
   const [url, setUrl] = useState("");
   const [language, setLanguage] = useState<"original" | "italian" | "english">(
-    "original",
+    "original"
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,7 +43,6 @@ export function AddResourceForm({
 
     // Reset form
     setUrl("");
-    setLanguage("english");
   };
 
   const isValidUrl = (url: string) => {
@@ -81,7 +80,7 @@ export function AddResourceForm({
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://youtube.com/watch?v=...   or   https://example.com/article"
+                placeholder="Resource Link"
                 className="pl-10 bg-background focus:bg-background placeholder:text-card-foreground/70"
                 disabled={isLoading}
               />
@@ -113,19 +112,17 @@ export function AddResourceForm({
               disabled={!canSubmit}
               className="whitespace-nowrap"
             >
-              {isLoading
-                ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                    Processing...
-                  </>
-                )
-                : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Resource
-                  </>
-                )}
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Resource
+                </>
+              )}
             </Button>
           </div>
         </form>

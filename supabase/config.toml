@@ -392,3 +392,47 @@ entrypoint = "./functions/delete-resource/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/delete-resource/*.html" ]
+
+[functions.create-job]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-job/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/create-job/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/create-job/*.html" ]
+
+[functions.update-job-step]
+enabled = true
+verify_jwt = true
+import_map = "./functions/update-job-step/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/update-job-step/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/update-job-step/*.html" ]
+
+[functions.get-job-status]
+enabled = true
+verify_jwt = true
+import_map = "./functions/get-job-status/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/get-job-status/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/get-job-status/*.html" ]
+
+[functions.workflow-error-notifier]
+enabled = true
+verify_jwt = true
+import_map = "./functions/workflow-error-notifier/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/workflow-error-notifier/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/workflow-error-notifier/*.html" ]

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -23,16 +23,26 @@ import {
 
 import { resourceService } from "@/services/resourceService";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@supabase/supabase-js";
+import { useJobNotifications } from "@/hooks/use-job-notifications";
 import type { Resource, CreateResourceRequest } from "@/types/resource";
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Dashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const getToastVariant = (type: string) => {
+    switch (type) {
+      case "job_completed":
+        return "default" as const;
+      case "job_failed":
+        return "destructive" as const;
+      case "step_updated":
+        return "default" as const;
+      case "resource_ready":
+        return "success" as const;
+      default:
+        return "default" as const;
+    }
+  };
   const [resources, setResources] = useState<Resource[]>([]);
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -44,66 +54,63 @@ export default function Dashboard() {
   });
   const [user, setUser] = useState<any>(null);
 
-  // Load resources and setup realtime subscription
+  // Initialize job notifications
+  useJobNotifications({
+    showToasts: true,
+    userId: user?.id,
+  });
+
+  // Load user & resources with polling fallback (replaces inline realtime here)
+  const previousResourceIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    let subscription: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    let interval: number | null = null;
 
-    const loadResources = () => {
-      resourceService
-        .getAllResources()
-        .then((data) => {
-          setResources(data);
-        })
-        .catch(console.error);
-    };
-
-    loadResources();
-
-    // Realtime setup with retry logic
-    const setupRealtime = async () => {
+    const fetchUser = async () => {
       try {
         const {
           data: { user: supaUser },
-        } = await supabase.auth.getUser();
-        if (!supaUser) return;
-        setUser(supaUser);
-
-        subscription = supabase
-          .channel(`resources-${supaUser.id}-${Date.now()}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "INSERT",
-              schema: "public",
-              table: "resources",
-            },
-            (payload) => {
-              console.log("[Realtime] INSERT event received:", payload);
-              // Check if the resource belongs to the current user
-              if (payload.new && payload.new.user_id === supaUser.id) {
-                loadResources();
-                toast({
-                  title: "Resource ready!",
-                  description:
-                    "A new resource has been processed and is now available in your dashboard.",
-                  duration: 6000,
-                  variant: "default",
-                });
-              }
-            }
-          )
-          .subscribe((status, err) => {
-            console.log("[Realtime] Subscription status:", status, err);
-          });
-      } catch (err) {
-        console.error("[Realtime] Setup error:", err);
+        } = await import("@/lib/supabase").then((m) =>
+          m.supabase.auth.getUser()
+        );
+        if (!cancelled) setUser(supaUser || null);
+      } catch (e) {
+        /* ignore */
       }
     };
 
-    setupRealtime();
+    const loadResources = async () => {
+      try {
+        const data = await resourceService.getAllResources();
+        if (cancelled) return;
+        // detect new resources for toast
+        const currentIds = new Set(data.map((r) => r.id));
+        data.forEach((r) => {
+          if (r.id && !previousResourceIdsRef.current.has(r.id)) {
+            if (previousResourceIdsRef.current.size > 0) {
+              toast({
+                title: "Resource ready!",
+                description:
+                  "A new resource has been processed and is now available.",
+                duration: 6000,
+                variant: getToastVariant("resource_ready"),
+              });
+            }
+          }
+        });
+        previousResourceIdsRef.current = currentIds;
+        setResources(data);
+      } catch (e) {
+        console.error("Error loading resources", e);
+      }
+    };
 
+    fetchUser();
+    loadResources();
+    interval = window.setInterval(loadResources, 5000) as unknown as number;
     return () => {
-      if (subscription) supabase.removeChannel(subscription);
+      cancelled = true;
+      if (interval) window.clearInterval(interval);
     };
   }, [toast]);
 
@@ -165,8 +172,8 @@ export default function Dashboard() {
 
       switch (filters.sortBy) {
         case "date":
-          aValue = new Date(a.published_date ?? "");
-          bValue = new Date(b.published_date ?? "");
+          aValue = new Date(a.processed_date ?? "");
+          bValue = new Date(b.processed_date ?? "");
           break;
         case "title":
           aValue = a.title.toLowerCase();
@@ -191,17 +198,28 @@ export default function Dashboard() {
   const handleAddResource = async (data: CreateResourceRequest) => {
     if (!user) return;
     setIsAddingResource(true);
-    toast({
-      title: "Processing resource...",
-      description:
-        "Your resource is being processed. It will appear automatically in the dashboard when ready.",
-      duration: 6000,
-      variant: "default",
-    });
+
     try {
+      // Job creation now delegated entirely to n8n (avoid duplicate jobs)
+      toast({
+        title: "Processing started!",
+        description:
+          "Workflow started. You will receive notifications during processing.",
+        duration: 6000,
+        variant: "default",
+      });
+
+      // Start the resource creation process
       await resourceService.createResource({
         ...data,
         user_id: user.id,
+      });
+    } catch (error) {
+      console.error("Error starting resource processing:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start processing. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsAddingResource(false);
@@ -287,7 +305,7 @@ export default function Dashboard() {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-6">
+              <div className="flex flex-wrap gap-6 max-sm:justify-center">
                 {filteredResources.map((resource) => (
                   <ResourceCard
                     key={resource.id}
