@@ -29,6 +29,66 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
   const lastStatusNotifiedRef = useRef<Record<string, Job["status"]>>({});
   const lastStepNotifiedRef = useRef<Set<string>>(new Set());
 
+  /**
+   * Maps technical node names to user-friendly names for better error messages
+   */
+  const mapNodeNameToUserFriendly = useCallback((nodeName: string): string => {
+    const baseNodeName = nodeName.replace(/\d+$/, "").trim();
+
+    // AI/LLM nodes
+    if (baseNodeName === "Basic LLM Chain") return "AI Model";
+    if (baseNodeName === "OpenRouter model") return "AI Model";
+    if (baseNodeName === "OpenRouter fallback model") return "AI Backup Model";
+    if (baseNodeName === "Structured Output Parser")
+      return "AI Response Processing";
+
+    // Content extraction nodes
+    if (nodeName === "Get video transcription") return "Video Transcription";
+    if (nodeName === "Scrape video") return "Video Content Extraction";
+    if (nodeName === "Scrape website") return "Website Content Extraction";
+
+    // Database nodes
+    if (baseNodeName === "Create a row") return "Database Save";
+    if (nodeName === "Get a row") return "Database Check";
+
+    // Processing nodes
+    if (nodeName === "Get video ID") return "Video Processing";
+    if (nodeName.includes("Get Title, Author, Published Date"))
+      return "Content Analysis";
+    if (nodeName.includes("Get Resource Language")) return "Language Detection";
+    if (nodeName === "Set Resource Language") return "Language Processing";
+
+    // Duplicate checking nodes
+    if (nodeName.includes("Check If Resource Is In Current User Collection"))
+      return "Duplicate Check";
+    if (nodeName.includes("Check If Current User Already Has Resource"))
+      return "Duplicate Check";
+    if (nodeName === "Check if resource link is not already in database")
+      return "Duplicate Check";
+
+    // Control flow nodes
+    if (nodeName === "Check if YouTube Video") return "Content Type Detection";
+    if (nodeName === "Switch") return "Content Processing";
+    if (nodeName === "Same Language") return "Language Processing";
+
+    // Update step nodes (map to their corresponding step)
+    if (nodeName.includes("Update Step - ")) {
+      const stepName = nodeName.replace("Update Step - ", "");
+      if (stepName.includes("Duplicates Check")) return "Duplicate Check";
+      if (stepName.includes("Content Type Detection"))
+        return "Content Type Detection";
+      if (stepName.includes("Content Extracted")) return "Content Extraction";
+      if (stepName.includes("AI Complete")) return "AI Processing";
+      if (stepName.includes("Database Save")) return "Database Save";
+      if (stepName.includes("Handle Duplicates")) return "Duplicate Handling";
+      return stepName; // fallback to step name without prefix
+    }
+
+    const cleanName = nodeName.replace(/\d+$/, "").trim();
+
+    return cleanName || "Workflow Node";
+  }, []);
+
   const loadJobs = useCallback(async () => {
     if (!userId) return;
 
@@ -106,9 +166,10 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
           case "workflow_error": {
             const workflowNotification =
               notification as WorkflowErrorNotification;
-            return `Workflow Error: ${
-              workflowNotification.workflowError.error_node || "Node Failed"
-            }`;
+            const nodeName =
+              workflowNotification.workflowError.error_node || "Node Failed";
+            const userFriendlyName = mapNodeNameToUserFriendly(nodeName);
+            return `Workflow Error: ${userFriendlyName}`;
           }
           default:
             return "Notification";
@@ -153,7 +214,7 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
             : 12000,
       });
     },
-    [showToasts, toast]
+    [showToasts, toast, mapNodeNameToUserFriendly]
   );
 
   const updateLocalJob = useCallback((updatedJob: Job) => {
