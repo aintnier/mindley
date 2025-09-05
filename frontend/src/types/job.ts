@@ -11,6 +11,7 @@ export interface Job {
   started_at: string | null;
   completed_at: string | null;
   error_message: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata: Record<string, any>;
   resource_id: number | null;
 }
@@ -24,8 +25,10 @@ export interface JobStep {
   started_at: string | null;
   completed_at: string | null;
   error_message: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   output_data: Record<string, any> | null;
   step_order: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata: Record<string, any>;
 }
 
@@ -46,6 +49,7 @@ export interface CreateJobRequest {
   steps: Array<{
     name: string;
     type: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadata?: Record<string, any>;
   }>;
 }

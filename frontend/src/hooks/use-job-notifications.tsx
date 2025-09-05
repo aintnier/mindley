@@ -234,6 +234,7 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
 
   // --- Unified event handler (realtime + polling synthetic) ---
   const handleEvent = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (evt: { source: string; payload: any; isSynthetic: boolean }) => {
       if (!userId) return;
       const payload = evt.payload;
@@ -241,6 +242,7 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
       // Handle workflow error events
       if (evt.source === "workflow_errors") {
         const workflowError = payload.new;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const eventType = (payload as any).eventType ?? (payload as any).event;
 
         if (eventType === "INSERT" && workflowError.user_id === userId) {
@@ -259,6 +261,7 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
       if (evt.source === "jobs") {
         const job = payload.new as Job;
         const oldJob = payload.old as Job;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const eventType = (payload as any).eventType ?? (payload as any).event;
 
         if (eventType === "INSERT") {
@@ -289,6 +292,7 @@ export function useJobNotifications(options: UseJobNotificationsOptions = {}) {
       } else if (evt.source === "job_steps") {
         const step = payload.new as JobStep;
         const oldStep = payload.old as JobStep;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const eventType = (payload as any).eventType ?? (payload as any).event;
         const statusChanged = oldStep?.status !== step.status;
         const isInteresting = ["running", "completed", "failed"].includes(

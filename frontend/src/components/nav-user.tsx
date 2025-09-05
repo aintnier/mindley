@@ -1,4 +1,4 @@
-import { BadgeCheck, Bell, ChevronsUpDown, LogOut } from "lucide-react";
+import { BadgeCheck, Settings, ChevronsUpDown, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
@@ -38,6 +40,15 @@ export function NavUser() {
         description: "An error occurred while logging out.",
       });
     }
+  };
+
+  const handleAccountClick = () => {
+    // Navigate to account settings or show account modal
+    navigate("/settings/account");
+  };
+
+  const handleSettingsClick = () => {
+    navigate("/settings");
   };
 
   if (!user) {
@@ -121,17 +132,13 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleAccountClick}>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              {/* <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem> */}
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
+              <DropdownMenuItem onClick={handleSettingsClick}>
+                <Settings />
+                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

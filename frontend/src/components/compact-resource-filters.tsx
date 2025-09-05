@@ -85,7 +85,7 @@ export function CompactResourceFilters({
           {/* Content Type */}
           <Select
             value={filters.contentType}
-            onValueChange={(value: any) =>
+            onValueChange={(value: FilterOptions["contentType"]) =>
               onFiltersChange({ ...filters, contentType: value })
             }
           >
@@ -102,9 +102,13 @@ export function CompactResourceFilters({
           {/* Sort */}
           <Select
             value={`${filters.sortBy}-${filters.sortOrder}`}
-            onValueChange={(value: any) => {
+            onValueChange={(value: string) => {
               const [sortBy, sortOrder] = value.split("-");
-              onFiltersChange({ ...filters, sortBy, sortOrder });
+              onFiltersChange({
+                ...filters,
+                sortBy: sortBy as FilterOptions["sortBy"],
+                sortOrder: sortOrder as FilterOptions["sortOrder"],
+              });
             }}
           >
             <SelectTrigger className="w-40">
