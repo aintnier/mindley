@@ -70,7 +70,7 @@ const ResourceDetail = () => {
   useEffect(() => {
     try {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    } catch (err) {
+    } catch {
       // ignore in non-browser environments
     }
   }, [id]);
@@ -535,7 +535,7 @@ const ResourceDetail = () => {
                       try {
                         const parsed = JSON.parse(resource.key_points);
                         if (Array.isArray(parsed)) keyPoints = parsed;
-                      } catch (err) {
+                      } catch {
                         // Silently ignore invalid JSON in key_points; leave keyPoints as empty array
                         // (Optional) console.debug('Invalid key_points JSON', err);
                       }

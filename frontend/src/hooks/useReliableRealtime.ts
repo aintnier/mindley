@@ -29,12 +29,14 @@ export interface RealtimeSource {
   filter: PostgresChangeFilter;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface SyntheticEvent<T = any> {
   source: string; // key of source
   payload: T; // domain payload (can mimic supabase payload shape)
   isSynthetic: boolean; // true if generated via polling
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface UseReliableRealtimeConfig<TSynthetic = any> {
   sources: RealtimeSource[];
   pollIntervalMs?: number;
@@ -90,6 +92,7 @@ export function useReliableRealtime(config: UseReliableRealtimeConfig): UseRelia
           setLastActivityAt(Date.now());
           onEvent({ ...evt, isSynthetic: true });
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         console.warn('[useReliableRealtime] Poller error', e);
       }
@@ -103,7 +106,7 @@ export function useReliableRealtime(config: UseReliableRealtimeConfig): UseRelia
   // ---------------- Subscription ----------------
   const cleanupChannels = useCallback(() => {
     Object.values(channelsRef.current).forEach((ch) => {
-      try { supabase.removeChannel(ch); } catch (_) { /* noop */ }
+      try { supabase.removeChannel(ch); } catch { /* noop */ }
     });
     channelsRef.current = {};
   }, []);
@@ -121,6 +124,7 @@ export function useReliableRealtime(config: UseReliableRealtimeConfig): UseRelia
     sources.forEach((source) => {
       const channel = supabase
         .channel(`reliable-${source.key}`)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .on('postgres_changes', source.filter as any, (payload) => {
           if (!isMountedRef.current) return;
           // Ignore events from stale generations

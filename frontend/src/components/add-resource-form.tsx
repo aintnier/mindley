@@ -95,7 +95,9 @@ export function AddResourceForm({
           <div className="flex gap-2 md:w-auto w-full ">
             <Select
               value={language}
-              onValueChange={(value) => setLanguage(value as any)}
+              onValueChange={(value) =>
+                setLanguage(value as "original" | "italian" | "english")
+              }
             >
               <SelectTrigger className="w-32 bg-background focus:bg-background">
                 <SelectValue />
