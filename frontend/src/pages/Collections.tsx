@@ -34,8 +34,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FloatingLabelInput } from "@/components/ui/floating-label-input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Collection, CreateCollectionRequest } from "@/types/collection";
 import {
   FolderPlus,
+  Plus,
   MoreVertical,
   Users,
   Lock,
@@ -61,6 +62,7 @@ export default function Collections() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [nameError, setNameError] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -70,12 +72,12 @@ export default function Collections() {
 
   // Color options for collections
   const colorOptions = [
-    { value: "#3B82F6", name: "Blue" },
-    { value: "#10B981", name: "Green" },
-    { value: "#8B5CF6", name: "Purple" },
-    { value: "#F59E0B", name: "Orange" },
-    { value: "#EF4444", name: "Red" },
-    { value: "#6B7280", name: "Gray" },
+    { value: "#3B82F6", name: "Blue", border: "#2563EB" },
+    { value: "#10B981", name: "Green", border: "#059669" },
+    { value: "#8B5CF6", name: "Purple", border: "#7C3AED" },
+    { value: "#F59E0B", name: "Orange", border: "#D97706" },
+    { value: "#EF4444", name: "Red", border: "#DC2626" },
+    { value: "#6B7280", name: "Gray", border: "#4B5563" },
   ];
 
   // Load collections
@@ -100,7 +102,11 @@ export default function Collections() {
   }, [toast]);
 
   const handleCreateCollection = async () => {
+    // Reset error state
+    setNameError(false);
+
     if (!formData.name.trim()) {
+      setNameError(true);
       toast({
         title: "Error",
         description: "Collection name is required.",
@@ -130,6 +136,7 @@ export default function Collections() {
         color: "#3B82F6",
         is_public: false,
       });
+      setNameError(false);
       setIsCreateDialogOpen(false);
 
       toast({
@@ -214,69 +221,91 @@ export default function Collections() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold">My Collections</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl font-bold text-absolute">
+                My Collections
+              </h1>
+              <p className="text-muted-absolute">
                 Organize your resources into custom collections
               </p>
             </div>
 
             <Dialog
               open={isCreateDialogOpen}
-              onOpenChange={setIsCreateDialogOpen}
+              onOpenChange={(open) => {
+                setIsCreateDialogOpen(open);
+                if (!open) {
+                  // Reset form and error when dialog closes
+                  setFormData({
+                    name: "",
+                    description: "",
+                    color: "#3B82F6",
+                    is_public: false,
+                  });
+                  setNameError(false);
+                }
+              }}
             >
               <DialogTrigger asChild>
                 <Button>
-                  <FolderPlus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4" />
                   New Collection
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Collection</DialogTitle>
-                  <DialogDescription>
+              <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-lg">
+                <DialogHeader className="text-center space-y-4">
+                  <DialogTitle className="text-center text-lg font-semibold">
+                    Create New Collection
+                  </DialogTitle>
+                  <DialogDescription className="text-center text-muted-foreground leading-relaxed">
                     Create a new collection to organize your resources.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      placeholder="Enter collection name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="description">Description (Optional)</Label>
-                    <Input
-                      id="description"
-                      value={formData.description}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Enter collection description"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="color">Color</Label>
-                    <div className="flex gap-2 mt-2">
+                <div className="space-y-4 mt-4">
+                  <FloatingLabelInput
+                    id="name"
+                    label="Name"
+                    required
+                    error={nameError}
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      // Clear error when user starts typing
+                      if (nameError) setNameError(false);
+                    }}
+                  />
+                  <FloatingLabelInput
+                    id="description"
+                    label="Description"
+                    value={formData.description}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setFormData({
+                        ...formData,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="color" className="text-sm font-medium">
+                      Color
+                    </Label>
+                    <div className="flex gap-2">
                       {colorOptions.map((color) => (
                         <button
                           key={color.value}
-                          className={`w-8 h-8 rounded-full border-2 ${
+                          className={`w-8 h-8 rounded-full border-2 max-md:border-[1px] transition-all duration-200 ${
                             formData.color === color.value
-                              ? "border-foreground"
-                              : "border-transparent"
+                              ? "border-foreground shadow-md"
+                              : ""
                           }`}
-                          style={{ backgroundColor: color.value }}
+                          style={{
+                            backgroundColor: color.value,
+                            borderColor:
+                              formData.color === color.value
+                                ? undefined
+                                : color.border,
+                          }}
                           onClick={() =>
                             setFormData({ ...formData, color: color.value })
                           }
@@ -286,14 +315,15 @@ export default function Collections() {
                     </div>
                   </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="grid grid-cols-2 gap-2 mt-4">
                   <Button
+                    className="w-full hover:bg-muted/50 hover:text-muted-foreground"
                     variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleCreateCollection}>
+                  <Button onClick={handleCreateCollection} className="w-full">
                     Create Collection
                   </Button>
                 </DialogFooter>
@@ -305,14 +335,8 @@ export default function Collections() {
           {collections.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <div
-                  className="rounded-full p-6 mb-4"
-                  style={{ backgroundColor: "rgb(59 130 246 / 0.1)" }}
-                >
-                  <FolderPlus
-                    className="h-12 w-12"
-                    style={{ color: "#3B82F6" }}
-                  />
+                <div className="rounded-full p-6 mb-4 border-2 max-md:border-[1px] border-[hsl(var(--primary-intense))]/20 dark:border-[hsl(var(--primary-intense))]/90 bg-[#1a58ea1a]/20 dark:bg-[#1a58ea1a]/40">
+                  <FolderPlus className="h-12 w-12 text-[#387EF5]" />
                 </div>
                 <h3 className="text-lg font-medium mb-2">No collections yet</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-4">
@@ -320,7 +344,7 @@ export default function Collections() {
                   custom groups.
                 </p>
                 <Button onClick={() => setIsCreateDialogOpen(true)}>
-                  <FolderPlus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4" />
                   Create Collection
                 </Button>
               </CardContent>

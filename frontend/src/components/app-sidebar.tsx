@@ -1,13 +1,5 @@
 import * as React from "react";
-import {
-  LayoutDashboard,
-  Library,
-  FolderOpen,
-  Home,
-  Plus,
-  Search,
-  Tags,
-} from "lucide-react";
+import { LayoutDashboard, Library, FolderOpen } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -31,12 +23,6 @@ const data = {
         {
           title: "Overview",
           url: "/dashboard",
-          icon: Home,
-        },
-        {
-          title: "Quick Add",
-          url: "/dashboard/add",
-          icon: Plus,
         },
       ],
     },
@@ -46,14 +32,8 @@ const data = {
       icon: Library,
       items: [
         {
-          title: "All Resources",
+          title: "My Resources",
           url: "/library",
-          icon: Library,
-        },
-        {
-          title: "Search & Filter",
-          url: "/library/search",
-          icon: Search,
         },
       ],
     },
@@ -65,12 +45,6 @@ const data = {
         {
           title: "My Collections",
           url: "/collections",
-          icon: FolderOpen,
-        },
-        {
-          title: "Tag Manager",
-          url: "/collections/tags",
-          icon: Tags,
         },
       ],
     },

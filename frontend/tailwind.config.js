@@ -10,6 +10,7 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        absolute: "hsl(var(--absolute))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -23,6 +24,7 @@ module.exports = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          intense: "hsl(var(--primary-intense))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -31,6 +33,7 @@ module.exports = {
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
+          absolute: "hsl(var(--muted-absolute))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",

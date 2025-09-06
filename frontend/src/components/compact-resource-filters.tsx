@@ -49,7 +49,7 @@ export function CompactResourceFilters({
     <div
       className={cn(
         "space-y-4",
-        "mb-4",
+        "mb-2",
         hasTagInfo && "md:mb-8",
         !hasTagInfo && "md:mb-6"
       )}
@@ -57,8 +57,8 @@ export function CompactResourceFilters({
       {/* Results header with controls */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4  ">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Your Resources</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold text-absolute">My Resources</h2>
+          <p className="text-muted-absolute">
             {resultCount}{" "}
             {resultCount === 1 ? "resource found" : "resources found"}
           </p>

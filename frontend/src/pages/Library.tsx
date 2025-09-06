@@ -182,17 +182,12 @@ export default function Library() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <ModeToggle />
-        </header>
-        <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold">Resource Library</h1>
-            <p className="text-muted-foreground">
-              Browse and search through all your saved resources.
-            </p>
+          <div className="ml-auto px-4">
+            <ModeToggle />
           </div>
+        </header>
 
+        <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
           {/* Filters */}
           <CompactResourceFilters
             filters={filters}
