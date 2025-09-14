@@ -142,7 +142,7 @@ export default function Collections() {
       toast({
         title: "Success",
         description: "Collection created successfully.",
-        variant: "default",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error creating collection:", error);
@@ -162,7 +162,7 @@ export default function Collections() {
       toast({
         title: "Success",
         description: "Collection deleted successfully.",
-        variant: "default",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error deleting collection:", error);
@@ -410,7 +410,7 @@ export default function Collections() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Resources</span>
-                        <Badge variant="secondary">
+                        <Badge variant="default">
                           {collection.resource_count}
                         </Badge>
                       </div>

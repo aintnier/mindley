@@ -1,4 +1,4 @@
-import { Calendar, ExternalLink, FileText, User } from "lucide-react";
+import { Calendar, ExternalLink, FileText, User, Trash2 } from "lucide-react";
 import YouTubeIcon from "@/components/icons/youtube";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +16,16 @@ import type { Resource } from "@/types/resource";
 interface ResourceCardProps {
   resource: Resource;
   onViewDetails: (id: string) => void;
+  showRemoveButton?: boolean;
+  onRemove?: () => void;
 }
 
-export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
+export function ResourceCard({
+  resource,
+  onViewDetails,
+  showRemoveButton,
+  onRemove,
+}: ResourceCardProps) {
   const tagsContainerRef = useRef<HTMLDivElement | null>(null);
   const tagRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const [forceNewLine, setForceNewLine] = useState(false);
@@ -98,7 +105,7 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
     : "Image unavailable";
 
   return (
-    <Card className="h-full flex flex-col hover:shadow-md transition-shadow duration-200 text-sm w-[22rem] overflow-hidden">
+    <Card className="h-full flex flex-col hover:shadow-md transition-shadow duration-200 text-sm w-full max-w-[22rem] overflow-hidden">
       <div className="w-full h-[12.32rem] bg-muted flex items-center justify-center text-center overflow-hidden">
         {resource.thumbnail_link ? (
           <img
@@ -122,14 +129,26 @@ export function ResourceCard({ resource, onViewDetails }: ResourceCardProps) {
               {resource.content_type}
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => window.open(resource.link, "_blank")}
-            className="h-8 w-8 p-0"
-          >
-            <ExternalLink className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open(resource.link, "_blank")}
+              className="h-8 w-8 p-0"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </Button>
+            {showRemoveButton && onRemove && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRemove}
+                className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
         <div>
           <CardTitle className="text-base leading-snug line-clamp-2 min-h-[2.6rem]">

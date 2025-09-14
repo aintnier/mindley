@@ -21,6 +21,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
@@ -39,7 +49,7 @@ import {
   Lock,
   Calendar,
   Hash,
-  Trash2,
+  AlertCircle,
 } from "lucide-react";
 
 export default function CollectionDetail() {
@@ -56,6 +66,13 @@ export default function CollectionDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [availableResources, setAvailableResources] = useState<Resource[]>([]);
   const [isAddingResource, setIsAddingResource] = useState(false);
+
+  // Remove confirmation modal state
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [resourceToRemove, setResourceToRemove] = useState<Resource | null>(
+    null
+  );
+  const [isRemoving, setIsRemoving] = useState(false);
 
   // Load collection and its resources
   useEffect(() => {
@@ -149,7 +166,7 @@ export default function CollectionDetail() {
       toast({
         title: "Success",
         description: "Resource added to collection.",
-        variant: "default",
+        variant: "success",
       });
 
       setIsAddingResource(false);
@@ -167,11 +184,22 @@ export default function CollectionDetail() {
     navigate(`/resource/${id}`);
   };
 
-  const handleRemoveResource = async (resourceId: string) => {
-    if (!id) return;
+  const handleRemoveConfirm = (resource: Resource) => {
+    setResourceToRemove(resource);
+    setShowRemoveDialog(true);
+  };
+
+  const handleRemoveResource = async () => {
+    if (!id || !resourceToRemove) return;
+
+    setIsRemoving(true);
+    setShowRemoveDialog(false);
 
     try {
-      await collectionService.removeResourceFromCollection(id, resourceId);
+      await collectionService.removeResourceFromCollection(
+        id,
+        resourceToRemove.id
+      );
 
       // Reload collection and resources
       const updatedCollection =
@@ -191,7 +219,7 @@ export default function CollectionDetail() {
       toast({
         title: "Success",
         description: "Resource removed from collection.",
-        variant: "default",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error removing resource from collection:", error);
@@ -200,6 +228,9 @@ export default function CollectionDetail() {
         description: "Failed to remove resource from collection.",
         variant: "destructive",
       });
+    } finally {
+      setIsRemoving(false);
+      setResourceToRemove(null);
     }
   };
 
@@ -232,7 +263,7 @@ export default function CollectionDetail() {
                 have permission to view it.
               </p>
               <Button onClick={() => navigate("/collections")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4" />
                 Back to Collections
               </Button>
             </div>
@@ -271,31 +302,34 @@ export default function CollectionDetail() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Collection Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/collections")}
+                className="self-start"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4" />
                 Back
               </Button>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-6 h-6 rounded-full"
+                    className="w-6 h-6 rounded-full flex-shrink-0"
                     style={{ backgroundColor: collection.color }}
                   />
-                  <h1 className="text-3xl font-bold">{collection.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold break-words">
+                    {collection.name}
+                  </h1>
                 </div>
                 {collection.description && (
-                  <p className="text-muted-foreground text-lg">
+                  <p className="text-muted-foreground text-base sm:text-lg">
                     {collection.description}
                   </p>
                 )}
 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     {collection.is_public ? (
                       <Users className="h-4 w-4" />
@@ -311,14 +345,14 @@ export default function CollectionDetail() {
                       {new Date(collection.created_date).toLocaleDateString()}
                     </span>
                   </div>
-                  <Badge variant="secondary">
+                  <Badge variant="default" className="w-fit">
                     {collectionResources.length} resources
                   </Badge>
                 </div>
 
                 {collection.tags && collection.tags.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Hash className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-start gap-2 flex-wrap">
+                    <Hash className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                     {collection.tags.map((tag) => (
                       <Badge key={tag} variant="outline">
                         {tag}
@@ -329,12 +363,13 @@ export default function CollectionDetail() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Button
                 variant="outline"
                 onClick={() => setIsAddingResource(!isAddingResource)}
+                className="w-full sm:w-auto"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4" />
                 {isAddingResource ? "Cancel" : "Add Resource"}
               </Button>
             </div>
@@ -366,7 +401,7 @@ export default function CollectionDetail() {
                       No available resources to add.
                     </p>
                   ) : (
-                    <div className="flex flex-wrap gap-4">
+                    <div className="flex flex-wrap gap-6 max-sm:justify-center">
                       {availableResources.map((resource) => (
                         <div key={resource.id} className="relative">
                           <ResourceCard
@@ -406,39 +441,78 @@ export default function CollectionDetail() {
                     your content.
                   </p>
                   <Button onClick={() => setIsAddingResource(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4" />
                     Add Resources
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-6 max-sm:justify-center">
                 {collectionResources.map((resource) => (
-                  <div
+                  <ResourceCard
                     key={resource.id}
-                    className="relative group flex-shrink-0 w-80"
-                  >
-                    <ResourceCard
-                      resource={resource}
-                      onViewDetails={handleViewResource}
-                    />
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveResource(resource.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    resource={resource}
+                    onViewDetails={handleViewResource}
+                    showRemoveButton={true}
+                    onRemove={() => handleRemoveConfirm(resource)}
+                  />
                 ))}
               </div>
             )}
           </div>
         </div>
       </SidebarInset>
+
+      {/* Remove Resource Confirmation Modal */}
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[425px] rounded-lg">
+          <AlertDialogHeader className="text-center space-y-4">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <div className="h-10 w-10 flex items-center justify-center rounded-full border border-muted/70">
+                <AlertCircle className="h-5 w-5 text-foreground" />
+              </div>
+            </div>
+
+            {/* Title */}
+            <AlertDialogTitle className="text-center text-lg font-semibold">
+              Confirm Removal
+            </AlertDialogTitle>
+
+            {/* Description */}
+            <AlertDialogDescription className="text-center text-muted-foreground leading-relaxed">
+              Are you sure you want to remove{" "}
+              <span className="text-foreground font-medium">
+                "{resourceToRemove?.title}"
+              </span>{" "}
+              from this collection? It will remain in your library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter className="grid grid-cols-2 gap-3 mt-4 items-end">
+            <AlertDialogCancel
+              disabled={isRemoving}
+              className="w-full hover:bg-muted/50 hover:text-muted-foreground"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveResource}
+              disabled={isRemoving}
+              className="w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              {isRemoving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                  Removing...
+                </>
+              ) : (
+                "Remove Resource"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   );
 }
