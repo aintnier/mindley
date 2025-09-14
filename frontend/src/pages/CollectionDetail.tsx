@@ -36,6 +36,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { ResourceCard } from "@/components/resource-card";
+import { CompactResourceCard } from "@/components/compact-resource-card";
 
 import { collectionService } from "@/services/collectionService";
 import { resourceService } from "@/services/resourceService";
@@ -45,6 +46,7 @@ import type { Resource } from "@/types/resource";
 import {
   ArrowLeft,
   Plus,
+  X,
   Users,
   Lock,
   Calendar,
@@ -345,9 +347,6 @@ export default function CollectionDetail() {
                       {new Date(collection.created_date).toLocaleDateString()}
                     </span>
                   </div>
-                  <Badge variant="default" className="w-fit">
-                    {collectionResources.length} resources
-                  </Badge>
                 </div>
 
                 {collection.tags && collection.tags.length > 0 && (
@@ -369,7 +368,11 @@ export default function CollectionDetail() {
                 onClick={() => setIsAddingResource(!isAddingResource)}
                 className="w-full sm:w-auto"
               >
-                <Plus className="h-4 w-4" />
+                {isAddingResource ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
                 {isAddingResource ? "Cancel" : "Add Resource"}
               </Button>
             </div>
@@ -395,7 +398,7 @@ export default function CollectionDetail() {
                     Select resources to add to this collection.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className=" p-6 bg-muted/30 dark:bg-muted/20">
                   {availableResources.length === 0 ? (
                     <p className="text-muted-foreground">
                       No available resources to add.
@@ -404,15 +407,12 @@ export default function CollectionDetail() {
                     <div className="flex flex-wrap gap-6 max-sm:justify-center">
                       {availableResources.map((resource) => (
                         <div key={resource.id} className="relative">
-                          <ResourceCard
-                            resource={resource}
-                            onViewDetails={handleViewResource}
-                          />
+                          <CompactResourceCard resource={resource} />
                           <div className="absolute top-2 right-2">
                             <Button
                               size="sm"
                               onClick={() => handleAddResource(resource.id)}
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 border border-primary-intense hover:bg-primary-intense hover:text-white transition-colors duration-300"
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
