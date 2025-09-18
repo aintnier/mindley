@@ -47,6 +47,10 @@ import { collectionService } from "@/services/collectionService";
 import { useToast } from "@/hooks/use-toast";
 import type { Collection, CreateCollectionRequest } from "@/types/collection";
 import {
+  CollectionColorDot,
+  colorOptions,
+} from "@/components/collection-color-dot";
+import {
   FolderPlus,
   Plus,
   MoreVertical,
@@ -69,16 +73,6 @@ export default function Collections() {
     color: "#3B82F6",
     is_public: false,
   });
-
-  // Color options for collections
-  const colorOptions = [
-    { value: "#3B82F6", name: "Blue", border: "#2563EB" },
-    { value: "#10B981", name: "Green", border: "#059669" },
-    { value: "#8B5CF6", name: "Purple", border: "#7C3AED" },
-    { value: "#F59E0B", name: "Orange", border: "#D97706" },
-    { value: "#EF4444", name: "Red", border: "#DC2626" },
-    { value: "#6B7280", name: "Gray", border: "#4B5563" },
-  ];
 
   // Load collections
   useEffect(() => {
@@ -292,20 +286,11 @@ export default function Collections() {
                     </Label>
                     <div className="flex gap-2">
                       {colorOptions.map((color) => (
-                        <button
+                        <CollectionColorDot
                           key={color.value}
-                          className={`w-8 h-8 rounded-full border-2 max-md:border-[1px] transition-all duration-200 ${
-                            formData.color === color.value
-                              ? "border-foreground shadow-md"
-                              : ""
-                          }`}
-                          style={{
-                            backgroundColor: color.value,
-                            borderColor:
-                              formData.color === color.value
-                                ? undefined
-                                : color.border,
-                          }}
+                          color={color.value}
+                          size="lg"
+                          selected={formData.color === color.value}
                           onClick={() =>
                             setFormData({ ...formData, color: color.value })
                           }
@@ -360,9 +345,9 @@ export default function Collections() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: collection.color }}
+                        <CollectionColorDot
+                          color={collection.color || "#6B7280"}
+                          size="sm"
                         />
                         <div>
                           <CardTitle className="text-lg">

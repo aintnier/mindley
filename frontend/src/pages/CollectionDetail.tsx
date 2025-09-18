@@ -43,6 +43,7 @@ import { resourceService } from "@/services/resourceService";
 import { useToast } from "@/hooks/use-toast";
 import type { CollectionWithResources } from "@/types/collection";
 import type { Resource } from "@/types/resource";
+import { CollectionColorDot } from "@/components/collection-color-dot";
 import {
   ArrowLeft,
   Plus,
@@ -305,7 +306,7 @@ export default function CollectionDetail() {
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Collection Header */}
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex flex-col gap-4">
               <Button
                 variant="ghost"
                 size="sm"
@@ -317,9 +318,9 @@ export default function CollectionDetail() {
               </Button>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-6 h-6 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: collection.color }}
+                  <CollectionColorDot
+                    color={collection.color || "#6B7280"}
+                    size="md"
                   />
                   <h1 className="text-2xl sm:text-3xl font-bold break-words">
                     {collection.name}

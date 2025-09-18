@@ -518,7 +518,7 @@ const ResourceDetail = () => {
               {/* Main Content */}
               <div className="md:col-span-8 lg:col-span-9">
                 <article className="prose dark:prose-invert prose-lg max-w-none">
-                  <h1 className="text-4xl font-bold mb-6 text-center">
+                  <h1 className="text-4xl font-bold mb-6 max-sm:text-center">
                     {resource.title}
                   </h1>
                   <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/30">
