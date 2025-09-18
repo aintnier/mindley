@@ -6,6 +6,7 @@ export interface WorkflowError {
   workflow_name: string;
   error_message: string;
   error_node?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error_data?: Record<string, any>;
   created_at: string;
   notified_at?: string;

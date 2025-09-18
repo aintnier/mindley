@@ -86,7 +86,7 @@ export function ResourceFilters({
             <label className="text-sm font-medium mb-2 block">Type</label>
             <Select
               value={filters.contentType}
-              onValueChange={(value: any) =>
+              onValueChange={(value: FilterOptions["contentType"]) =>
                 onFiltersChange({ ...filters, contentType: value })
               }
             >
@@ -105,7 +105,7 @@ export function ResourceFilters({
             <label className="text-sm font-medium mb-2 block">Sort by</label>
             <Select
               value={filters.sortBy}
-              onValueChange={(value: any) =>
+              onValueChange={(value: FilterOptions["sortBy"]) =>
                 onFiltersChange({ ...filters, sortBy: value })
               }
             >
@@ -124,7 +124,7 @@ export function ResourceFilters({
             <label className="text-sm font-medium mb-2 block">Order</label>
             <Select
               value={filters.sortOrder}
-              onValueChange={(value: any) =>
+              onValueChange={(value: FilterOptions["sortOrder"]) =>
                 onFiltersChange({ ...filters, sortOrder: value })
               }
             >

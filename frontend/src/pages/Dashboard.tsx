@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { startOfWeek, endOfWeek, subWeeks } from "date-fns";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
-import { ResourceCard } from "@/components/resource-card";
 import { AddResourceForm } from "@/components/add-resource-form";
-import { CompactResourceFilters } from "@/components/compact-resource-filters";
-import type { FilterOptions } from "@/components/compact-resource-filters";
+import { StatsOverview } from "@/components/stats-overview";
+import { RecentResources } from "@/components/recent-resources";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -45,14 +45,7 @@ export default function Dashboard() {
   };
   const [resources, setResources] = useState<Resource[]>([]);
   const [isAddingResource, setIsAddingResource] = useState(false);
-  const [filters, setFilters] = useState<FilterOptions>({
-    search: "",
-    contentType: "all",
-    sortBy: "date",
-    sortOrder: "desc",
-    selectedTags: [],
-  });
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string } | null>(null);
 
   // Initialize job notifications
   useJobNotifications({
@@ -60,7 +53,7 @@ export default function Dashboard() {
     userId: user?.id,
   });
 
-  // Load user & resources with polling fallback (replaces inline realtime here)
+  // Load user & resources with polling fallback
   const previousResourceIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     let cancelled = false;
@@ -74,7 +67,7 @@ export default function Dashboard() {
           m.supabase.auth.getUser()
         );
         if (!cancelled) setUser(supaUser || null);
-      } catch (e) {
+      } catch {
         /* ignore */
       }
     };
@@ -114,93 +107,97 @@ export default function Dashboard() {
     };
   }, [toast]);
 
-  // Extract all unique tags from resources
-  const availableTags = useMemo(() => {
-    const allTags = resources.flatMap((resource) => resource.tags);
-    return Array.from(new Set(allTags)).sort();
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = resources.length;
+    const youtube = resources.filter(
+      (r) => r.content_type === "youtube"
+    ).length;
+    const articles = resources.filter(
+      (r) => r.content_type === "article"
+    ).length;
+
+    return { total, youtube, articles };
   }, [resources]);
 
-  // Calculate tag counts
-  const tagCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    resources.forEach((resource) => {
-      resource.tags.forEach((tag) => {
-        counts[tag] = (counts[tag] || 0) + 1;
-      });
+  // Calculate comparative stats (vs previous calendar week)
+  const comparisons = useMemo(() => {
+    const now = new Date();
+
+    // Define current week boundaries (Monday to Sunday)
+    const currentWeekStart = startOfWeek(now, { weekStartsOn: 1 });
+    const currentWeekEnd = endOfWeek(now, { weekStartsOn: 1 });
+
+    // Define previous week boundaries
+    const previousWeekStart = startOfWeek(subWeeks(now, 1), {
+      weekStartsOn: 1,
     });
-    return counts;
+    const previousWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 });
+
+    // Current week resources
+    const currentWeekResources = resources.filter((r) => {
+      const resourceDate = new Date(r.processed_date);
+      return resourceDate >= currentWeekStart && resourceDate <= currentWeekEnd;
+    });
+
+    // Previous week resources
+    const previousWeekResources = resources.filter((r) => {
+      const resourceDate = new Date(r.processed_date);
+      return (
+        resourceDate >= previousWeekStart && resourceDate <= previousWeekEnd
+      );
+    });
+
+    // Current week counts by type
+    const currentWeekTotal = currentWeekResources.length;
+    const currentWeekYoutube = currentWeekResources.filter(
+      (r) => r.content_type === "youtube"
+    ).length;
+    const currentWeekArticles = currentWeekResources.filter(
+      (r) => r.content_type === "article"
+    ).length;
+
+    // Previous week counts by type
+    const previousWeekTotal = previousWeekResources.length;
+    const previousWeekYoutube = previousWeekResources.filter(
+      (r) => r.content_type === "youtube"
+    ).length;
+    const previousWeekArticles = previousWeekResources.filter(
+      (r) => r.content_type === "article"
+    ).length;
+
+    // Calculate percentage changes
+    const calculateChange = (current: number, previous: number): number => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    return {
+      totalChange: calculateChange(currentWeekTotal, previousWeekTotal),
+      youtubeChange: calculateChange(currentWeekYoutube, previousWeekYoutube),
+      articlesChange: calculateChange(
+        currentWeekArticles,
+        previousWeekArticles
+      ),
+    };
   }, [resources]);
 
-  // Filter and sort resources
-  const filteredResources = useMemo(() => {
-    const filtered = resources.filter((resource) => {
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const matchesSearch =
-          resource.title.toLowerCase().includes(searchLower) ||
-          (resource.author ?? "").toLowerCase().includes(searchLower) ||
-          resource.summary.toLowerCase().includes(searchLower) ||
-          resource.tags.some((tag) => tag.toLowerCase().includes(searchLower));
-
-        if (!matchesSearch) return false;
-      }
-
-      // Content type filter
-      if (
-        filters.contentType !== "all" &&
-        resource.content_type !== filters.contentType
-      ) {
-        return false;
-      }
-
-      // Tags filter
-      if (filters.selectedTags.length > 0) {
-        const hasSelectedTag = filters.selectedTags.some((tag) =>
-          resource.tags.includes(tag)
-        );
-        if (!hasSelectedTag) return false;
-      }
-
-      return true;
-    });
-
-    // Sort
-    filtered.sort((a, b) => {
-      let aValue: string | Date;
-      let bValue: string | Date;
-
-      switch (filters.sortBy) {
-        case "date":
-          aValue = new Date(a.processed_date ?? "");
-          bValue = new Date(b.processed_date ?? "");
-          break;
-        case "title":
-          aValue = a.title.toLowerCase();
-          bValue = b.title.toLowerCase();
-          break;
-        case "author":
-          aValue = (a.author ?? "").toLowerCase();
-          bValue = (b.author ?? "").toLowerCase();
-          break;
-        default:
-          return 0;
-      }
-
-      if (aValue < bValue) return filters.sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return filters.sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return filtered;
-  }, [resources, filters]);
+  // Get recent resources (last 6)
+  const recentResources = useMemo(() => {
+    return [...resources]
+      .sort(
+        (a, b) =>
+          new Date(b.processed_date).getTime() -
+          new Date(a.processed_date).getTime()
+      )
+      .slice(0, 6);
+  }, [resources]);
 
   const handleAddResource = async (data: CreateResourceRequest) => {
     if (!user) return;
     setIsAddingResource(true);
 
     try {
-      // Job creation now delegated entirely to n8n (avoid duplicate jobs)
       toast({
         title: "Processing started!",
         description:
@@ -209,7 +206,6 @@ export default function Dashboard() {
         variant: "default",
       });
 
-      // Start the resource creation process
       await resourceService.createResource({
         ...data,
         user_id: user.id,
@@ -234,13 +230,10 @@ export default function Dashboard() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
+            <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
@@ -258,64 +251,29 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
-          {/* Add Resource Form */}
-          <div className="w-full">
-            <AddResourceForm
-              onSubmit={handleAddResource}
-              isLoading={isAddingResource}
-            />
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          {/* Header */}
+          <div className="space-y-1 mb-4">
+            <h1 className="text-2xl font-bold text-absolute">Overview</h1>
+            <p className="text-muted-absolute">
+              Monitor your activity and manage your resources efficiently.
+            </p>
           </div>
 
-          {/* Filters */}
-          <CompactResourceFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableTags={availableTags}
-            tagCounts={tagCounts}
-            resultCount={filteredResources.length}
+          {/* Add Resource Form */}
+          <AddResourceForm
+            onSubmit={handleAddResource}
+            isLoading={isAddingResource}
           />
 
-          {/* Resources Grid */}
-          <div className="flex-1">
-            {filteredResources.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="rounded-full bg-muted/50 p-6 mb-4">
-                  <svg
-                    className="h-12 w-12 text-muted-foreground"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium mb-2">No resources found</h3>
-                <p className="text-muted-foreground max-w-md">
-                  {filters.search ||
-                  filters.contentType !== "all" ||
-                  filters.selectedTags.length > 0
-                    ? "There are no resources matching the selected filters. Try adjusting your search criteria."
-                    : "Start by adding your first resource using the form above."}
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-6 max-sm:justify-center">
-                {filteredResources.map((resource) => (
-                  <ResourceCard
-                    key={resource.id}
-                    resource={resource}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Stats Overview */}
+          <StatsOverview stats={stats} comparisons={comparisons} />
+
+          {/* Recent Resources */}
+          <RecentResources
+            recentResources={recentResources}
+            onViewDetails={handleViewDetails}
+          />
         </div>
       </SidebarInset>
     </SidebarProvider>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Library, FolderOpen } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -22,32 +22,33 @@ const data = {
       items: [
         {
           title: "Overview",
-          url: "#",
+          url: "/dashboard",
         },
+      ],
+    },
+    {
+      title: "Library",
+      url: "#",
+      icon: Library,
+      items: [
         {
-          title: "Add Resource",
-          url: "#",
+          title: "My Resources",
+          url: "/library",
+        },
+      ],
+    },
+    {
+      title: "Collections",
+      url: "#",
+      icon: FolderOpen,
+      items: [
+        {
+          title: "My Collections",
+          url: "/collections",
         },
       ],
     },
   ],
-  // projects: [
-  //   {
-  //     name: "Knowledge Base",
-  //     url: "#",
-  //     icon: Frame,
-  //   },
-  //   {
-  //     name: "Analytics",
-  //     url: "#",
-  //     icon: PieChart,
-  //   },
-  //   {
-  //     name: "Resources",
-  //     url: "#",
-  //     icon: Map,
-  //   },
-  // ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

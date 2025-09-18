@@ -18,6 +18,10 @@ node_modules/
 .github/instructions/
 .github/prompts/
 .github/chatmodes/
+.github/implementation_processings/
+
+# Playwright MCP folder
+.playwright-mcp/
 
 # Logs
 npm-debug.log*

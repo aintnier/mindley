@@ -57,76 +57,80 @@ export function AddResourceForm({
   const canSubmit = url.trim() && isValidUrl(url) && !isLoading;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center space-x-2 text-lg">
-          <Plus className="h-4 w-4" />
-          <span>Add New Resource</span>
-        </CardTitle>
-        <CardDescription className="text-sm">
-          Paste a YouTube video or article link to add it to your collection
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col md:flex-row gap-3"
-        >
-          <div className="flex-1">
-            <div className="relative">
-              <LinkIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="url"
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="Resource Link"
-                className="pl-10 bg-background focus:bg-background placeholder:text-card-foreground/70"
-                disabled={isLoading}
-              />
-            </div>
-            {url && !isValidUrl(url) && (
-              <p className="text-xs text-destructive mt-1">
-                Please enter a valid URL
-              </p>
-            )}
-          </div>
-
-          <div className="flex gap-2 md:w-auto w-full ">
-            <Select
-              value={language}
-              onValueChange={(value) => setLanguage(value as any)}
-            >
-              <SelectTrigger className="w-32 bg-background focus:bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="original">Original</SelectItem>
-                <SelectItem value="italian">Italian</SelectItem>
-                <SelectItem value="english">English</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              type="submit"
-              disabled={!canSubmit}
-              className="whitespace-nowrap"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Resource
-                </>
+    <div className="space-y-4 mb-2">
+      <Card className="w-full">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center space-x-2 text-lg">
+            <Plus className="h-4 w-4" />
+            <span>Add New Resource</span>
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Paste a YouTube video or article link to add it to your collection
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col md:flex-row gap-3"
+          >
+            <div className="flex-1">
+              <div className="relative">
+                <LinkIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="url"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Resource Link"
+                  className="pl-10 bg-background focus:bg-background placeholder:text-card-foreground/70"
+                  disabled={isLoading}
+                />
+              </div>
+              {url && !isValidUrl(url) && (
+                <p className="text-xs text-destructive mt-1">
+                  Please enter a valid URL
+                </p>
               )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            </div>
+
+            <div className="flex gap-2 md:w-auto w-full ">
+              <Select
+                value={language}
+                onValueChange={(value) =>
+                  setLanguage(value as "original" | "italian" | "english")
+                }
+              >
+                <SelectTrigger className="w-32 bg-background focus:bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="original">Original</SelectItem>
+                  <SelectItem value="italian">Italian</SelectItem>
+                  <SelectItem value="english">English</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                type="submit"
+                disabled={!canSubmit}
+                className="whitespace-nowrap"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Add Resource
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -70,7 +70,7 @@ const ResourceDetail = () => {
   useEffect(() => {
     try {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    } catch (err) {
+    } catch {
       // ignore in non-browser environments
     }
   }, [id]);
@@ -237,11 +237,11 @@ const ResourceDetail = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/library")}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
+                Back to Library
               </Button>
             </div>
             <div className="ml-auto px-3">
@@ -305,11 +305,11 @@ const ResourceDetail = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/library")}
               className="flex items-center gap-2 mb-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              Back to Library
             </Button>
           </div>
 
@@ -518,7 +518,7 @@ const ResourceDetail = () => {
               {/* Main Content */}
               <div className="md:col-span-8 lg:col-span-9">
                 <article className="prose dark:prose-invert prose-lg max-w-none">
-                  <h1 className="text-4xl font-bold mb-6 text-center">
+                  <h1 className="text-4xl font-bold mb-6 max-sm:text-center">
                     {resource.title}
                   </h1>
                   <div className="not-prose mb-8 p-6 border rounded-lg bg-muted/30">
@@ -535,7 +535,7 @@ const ResourceDetail = () => {
                       try {
                         const parsed = JSON.parse(resource.key_points);
                         if (Array.isArray(parsed)) keyPoints = parsed;
-                      } catch (err) {
+                      } catch {
                         // Silently ignore invalid JSON in key_points; leave keyPoints as empty array
                         // (Optional) console.debug('Invalid key_points JSON', err);
                       }

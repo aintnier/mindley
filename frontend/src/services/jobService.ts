@@ -94,6 +94,7 @@ export class JobService {
     }
     if (!data) return null;
     // Normalize shape: edge function returns job_steps for historical reasons; map to steps expected by frontend types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const normalized: any = { ...data };
     if (!normalized.steps && Array.isArray(normalized.job_steps)) {
       normalized.steps = normalized.job_steps;
@@ -109,6 +110,7 @@ export class JobService {
     stepName: string,
     status: JobStepStatus,
     errorMessage?: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputData?: Record<string, any>,
     workflowExecutionId?: string
   ): Promise<{ updated_step: JobStep; job: JobWithSteps }> {
@@ -187,6 +189,7 @@ export class JobService {
     stepId: string,
     status: JobStepStatus,
     errorMessage?: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     outputData?: Record<string, any>
   ): Promise<void> {
     const updates: Partial<JobStep> = { status };

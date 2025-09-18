@@ -1,5 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Dashboard from "@/pages/Dashboard";
+import Library from "@/pages/Library";
+import Collections from "@/pages/Collections";
+import CollectionDetail from "@/pages/CollectionDetail";
+import Settings from "@/pages/Settings";
 import ResourceDetail from "@/pages/ResourceDetail";
 import SignUp from "@/pages/SignUp";
 import SignIn from "@/pages/SignIn";
@@ -40,6 +44,46 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/library"
+              element={
+                <ProtectedRoute>
+                  <Library />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections"
+              element={
+                <ProtectedRoute>
+                  <Collections />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collection/:id"
+              element={
+                <ProtectedRoute>
+                  <CollectionDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/account"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
